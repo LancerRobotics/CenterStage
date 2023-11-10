@@ -34,9 +34,9 @@ import java.util.List;
  *
  */
 public class TwoWheelTrackingLocalizer extends TwoTrackingWheelLocalizer {
-    public static double TICKS_PER_REV = 537.7;
-    public static double WHEEL_RADIUS = 1.8898; // in
-    public static double GEAR_RATIO = 1; // output (wheel) speed / input (encoder) speed
+    public static double TICKS_PER_REV = DriveConstants.TICKS_PER_REV;
+    public static double WHEEL_RADIUS = DriveConstants.WHEEL_RADIUS; // in
+    public static double GEAR_RATIO = DriveConstants.GEAR_RATIO; // output (wheel) speed / input (encoder) speed
 
     public static double PARALLEL_X = 5.0; // X is the up and down direction
     public static double PARALLEL_Y = -6.5; // Y is the strafe direction
