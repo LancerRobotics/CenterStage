@@ -11,12 +11,13 @@ public class MecanumTeleOp extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         // Declare our motors
         // Make sure your ID's match your configuration
-        DcMotor leftFront = hardwareMap.dcMotor.get("leftFront");
-        DcMotor leftRear = hardwareMap.dcMotor.get("leftRear");
-        DcMotor rightFront = hardwareMap.dcMotor.get("rightFront");
-        DcMotor rightRear = hardwareMap.dcMotor.get("rightRear");
-        DcMotor SlideMotorLeft = hardwareMap.dcMotor.get("SlideMotorLeft");
-        DcMotor SlideMotorRight = hardwareMap.dcMotor.get("SlideMotorRight");
+        DcMotor leftFront = hardwareMap.dcMotor.get("frontLeft");
+        DcMotor leftRear = hardwareMap.dcMotor.get("rearLeft");
+        DcMotor rightFront = hardwareMap.dcMotor.get("frontRight");
+        DcMotor rightRear = hardwareMap.dcMotor.get("rearRight");
+        DcMotor SlideMotorLeft = hardwareMap.dcMotor.get("SlideMotorL");
+        DcMotor SlideMotorRight = hardwareMap.dcMotor.get("SlideMotorR");
+        DcMotor intakeMotor = hardwareMap.dcMotor.get("intake");
 
         // Reverse the right side motors. This may be wrong for your setup.
         // If your robot moves backwards when commanded to go forwards,
@@ -55,8 +56,10 @@ public class MecanumTeleOp extends LinearOpMode {
             //when gamepad2 left joystick goes up, the left motor should go positive and the right motor should go negative
             //when gamepad2 right joystick goes up, the right motor should go positive and the left motor should go negative
             //Make sure that both motors are spinning at the same magnitude AT ALL TIMES
-
-
+            double slidemotorpowerleft = gamepad2.left_stick_y;
+            double slidemotorpowerright = -slidemotorpowerleft;
+            SlideMotorLeft.setPower(slidemotorpowerleft);
+            SlideMotorRight.setPower(slidemotorpowerright);
         }
     }
 }
