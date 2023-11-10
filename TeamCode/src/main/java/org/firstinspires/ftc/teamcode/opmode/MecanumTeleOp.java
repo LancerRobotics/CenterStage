@@ -5,19 +5,22 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
+import org.firstinspires.ftc.teamcode.LancersBotConfig;
+
 @TeleOp
 public class MecanumTeleOp extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         // Declare our motors
         // Make sure your ID's match your configuration
-        DcMotor leftFront = hardwareMap.dcMotor.get("frontLeft");
-        DcMotor leftRear = hardwareMap.dcMotor.get("rearLeft");
-        DcMotor rightFront = hardwareMap.dcMotor.get("frontRight");
-        DcMotor rightRear = hardwareMap.dcMotor.get("rearRight");
-        DcMotor SlideMotorLeft = hardwareMap.dcMotor.get("SlideMotorL");
-        DcMotor SlideMotorRight = hardwareMap.dcMotor.get("SlideMotorR");
-        DcMotor intakeMotor = hardwareMap.dcMotor.get("intake");
+        DcMotor leftFront = hardwareMap.dcMotor.get(LancersBotConfig.LEFT_FRONT_MOTOR);
+        DcMotor leftRear = hardwareMap.dcMotor.get(LancersBotConfig.LEFT_REAR_MOTOR);
+        DcMotor rightFront = hardwareMap.dcMotor.get(LancersBotConfig.RIGHT_FRONT_MOTOR);
+        DcMotor rightRear = hardwareMap.dcMotor.get(LancersBotConfig.RIGHT_REAR_MOTOR);
+        DcMotor SlideMotorLeft = hardwareMap.dcMotor.get(LancersBotConfig.LEFT_SLIDE_MOTOR);
+        DcMotor SlideMotorRight = hardwareMap.dcMotor.get(LancersBotConfig.RIGHT_SLIDE_MOTOR);
+
+        DcMotor intakeMotor = hardwareMap.dcMotor.get(LancersBotConfig.INTAKE_MOTOR);
 
         // Reverse the right side motors. This may be wrong for your setup.
         // If your robot moves backwards when commanded to go forwards,
