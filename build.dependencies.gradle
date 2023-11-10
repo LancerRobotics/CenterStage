@@ -2,12 +2,11 @@ repositories {
     mavenCentral()
     google() // Needed for androidx
     jcenter() //    Needed for tensorflow-lite
-    maven { url = 'https://maven.brott.dev/' }
-
-
+    maven { url = 'https://maven.brott.dev/' } // RoadRunner
 }
 
 dependencies {
+    // Core Dependencies
     implementation 'org.firstinspires.ftc:Inspection:9.0.1'
     implementation 'org.firstinspires.ftc:Blocks:9.0.1'
     implementation 'org.firstinspires.ftc:Tfod:9.0.1'
@@ -22,8 +21,7 @@ dependencies {
     runtimeOnly 'org.tensorflow:tensorflow-lite:2.12.0'
     implementation 'androidx.appcompat:appcompat:1.2.0'
 
-    implementation 'com.acmerobotics.dashboard:dashboard:0.4.12'
-
-
+    // Lancers -- Dependencies
+    implementation 'com.acmerobotics.dashboard:dashboard:0.4.12' // RoadRunner
 }
 
