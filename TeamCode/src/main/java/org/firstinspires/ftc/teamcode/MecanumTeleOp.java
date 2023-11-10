@@ -58,8 +58,10 @@ public class MecanumTeleOp extends LinearOpMode {
             //Make sure that both motors are spinning at the same magnitude AT ALL TIMES
             double slidemotorpowerleft = gamepad2.left_stick_y;
             double slidemotorpowerright = -slidemotorpowerleft;
+            //hopefully made it so that the two powers are constantly spinning at the same magnitude
             SlideMotorLeft.setPower(slidemotorpowerleft);
             SlideMotorRight.setPower(slidemotorpowerright);
+            //I have no clue what I'm doing uhhhh
         }
     }
 }
