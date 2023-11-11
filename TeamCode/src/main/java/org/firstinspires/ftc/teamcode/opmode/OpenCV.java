@@ -19,6 +19,7 @@ import org.openftc.easyopencv.OpenCvWebcam;
  * Holds common OpenCV code shared between different auton modes.
  */
 // https://www.youtube.com/watch?v=547ZUZiYfQE&t=37s
+    //NOTE: THIS IS ONLY FOR RECOGNIZING THE COLOR RED, TO RECOGNIZE THE COLOR BLUE THIS CODE WILL HAVE TO BE SLIGHTLY MODIFIED
 public class OpenCV extends OpMode{
     final OpMode opMode;
     final AutonStartMode startMode;
