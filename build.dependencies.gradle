@@ -23,5 +23,6 @@ dependencies {
 
     // Lancers -- Dependencies
     implementation 'com.acmerobotics.dashboard:dashboard:0.4.12' // RoadRunner
+    implementation 'org.openftc:easyopencv:1.5.1' // OpenCV
 }
 

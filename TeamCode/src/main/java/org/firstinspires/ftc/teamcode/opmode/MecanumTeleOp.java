@@ -17,8 +17,9 @@ public class MecanumTeleOp extends LinearOpMode {
         DcMotor leftRear = hardwareMap.dcMotor.get(LancersBotConfig.LEFT_REAR_MOTOR);
         DcMotor rightFront = hardwareMap.dcMotor.get(LancersBotConfig.RIGHT_FRONT_MOTOR);
         DcMotor rightRear = hardwareMap.dcMotor.get(LancersBotConfig.RIGHT_REAR_MOTOR);
-        DcMotor SlideMotorLeft = hardwareMap.dcMotor.get(LancersBotConfig.LEFT_SLIDE_MOTOR);
-        DcMotor SlideMotorRight = hardwareMap.dcMotor.get(LancersBotConfig.RIGHT_SLIDE_MOTOR);
+
+        DcMotor slideMotorLeft = hardwareMap.dcMotor.get(LancersBotConfig.LEFT_SLIDE_MOTOR);
+        DcMotor slideMotorRight = hardwareMap.dcMotor.get(LancersBotConfig.RIGHT_SLIDE_MOTOR);
 
         DcMotor intakeMotor = hardwareMap.dcMotor.get(LancersBotConfig.INTAKE_MOTOR);
 
@@ -35,18 +36,19 @@ public class MecanumTeleOp extends LinearOpMode {
 
         while (opModeIsActive()) {
             //Bot movement
-            double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
-            double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
-            double rx = gamepad1.right_stick_x;
+            final double ly = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
+            final double lx = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
+
+            final double rx = gamepad1.right_stick_x;
 
             // Denominator is the largest motor power (absolute value) or 1
             // This ensures all the powers maintain the same ratio,
             // but only if at least one is out of the range [-1, 1]
-            double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-            double frontLeftPower = (y + x + rx) / denominator;
-            double backLeftPower = (y - x + rx) / denominator;
-            double frontRightPower = (y - x - rx) / denominator;
-            double backRightPower = (y + x - rx) / denominator;
+            double denominator = Math.max(Math.abs(ly) + Math.abs(lx) + Math.abs(rx), 1);
+            double frontLeftPower = (ly + lx + rx) / denominator;
+            double backLeftPower = (ly - lx + rx) / denominator;
+            double frontRightPower = (ly - lx - rx) / denominator;
+            double backRightPower = (ly + lx - rx) / denominator;
 
             leftFront.setPower(frontLeftPower);
             leftRear.setPower(backLeftPower);
@@ -60,8 +62,8 @@ public class MecanumTeleOp extends LinearOpMode {
             double slidemotorpowerleft = gamepad2.left_stick_y;
             double slidemotorpowerright = -slidemotorpowerleft;
             //hopefully made it so that the two powers are constantly spinning at the same magnitude
-            SlideMotorLeft.setPower(slidemotorpowerleft);
-            SlideMotorRight.setPower(slidemotorpowerright);
+            slideMotorLeft.setPower(slidemotorpowerleft);
+            slideMotorRight.setPower(slidemotorpowerright);
             //I have no clue what I'm doing uhhhh
         }
     }
