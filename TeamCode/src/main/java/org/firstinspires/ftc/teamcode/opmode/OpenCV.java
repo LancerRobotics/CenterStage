@@ -22,6 +22,7 @@ import org.openftc.easyopencv.OpenCvWebcam;
     //NOTE: THIS IS ONLY FOR RECOGNIZING THE COLOR RED, TO RECOGNIZE THE COLOR BLUE THIS CODE WILL HAVE TO BE SLIGHTLY MODIFIED
     //To change color, look at line 62 to change rgb
 public class OpenCV extends OpMode{
+    public static String direction; // if color sought after is on the left or the right, to be used in auton classes
     final OpMode opMode;
     final AutonStartMode startMode;
 
@@ -92,13 +93,17 @@ public class OpenCV extends OpMode{
             //You would then modify this statement to include an else-if.
             if (leftavgfin > rightavgfin){
                 telemetry.addLine("left"); //If the average amount of color that is being sought after is larger in the left box than the right box, the robot identifies it as being on the left
+                direction = "left";
             }
             else{
                 telemetry.addLine("right");//otherwise, the robot knows that there is a majority of the sought after color on the right
-
+                direction = "right";
             }
 
             return(outPut);
+        }
+        public String getDirection() {
+            return direction;
         }
     }
 }
