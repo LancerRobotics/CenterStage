@@ -20,6 +20,7 @@ import org.openftc.easyopencv.OpenCvWebcam;
  */
 // https://www.youtube.com/watch?v=547ZUZiYfQE&t=37s
     //NOTE: THIS IS ONLY FOR RECOGNIZING THE COLOR RED, TO RECOGNIZE THE COLOR BLUE THIS CODE WILL HAVE TO BE SLIGHTLY MODIFIED
+    //To change color, look at line 62 to change rgb
 public class OpenCV extends OpMode{
     final OpMode opMode;
     final AutonStartMode startMode;
@@ -37,7 +38,7 @@ public class OpenCV extends OpMode{
         webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() { //opens camera webcam
             @Override
             public void onOpened() {
-                webcam.startStreaming(720, 720, OpenCvCameraRotation.UPRIGHT); //Sets width and heihg of the camera as well as its orientation
+                webcam.startStreaming(720, 720, OpenCvCameraRotation.UPRIGHT); //Sets width and height of the camera as well as its orientation
             }
 
             @Override
@@ -50,7 +51,7 @@ public class OpenCV extends OpMode{
     public void loop() {
 
     }
-    class examplePipeline extends OpenCvPipeline{ //place where any variables that are members of the pipline should be defined
+    class examplePipeline extends OpenCvPipeline{ //place where any variables that are members of the pipeline should be defined
     //all variables must be declared at the beginning of the pipeline
         Mat YCbCr = new Mat();
         Mat leftCrop;
@@ -58,7 +59,7 @@ public class OpenCV extends OpMode{
         double leftavgfin;
         double rightavgfin;
         Mat outPut = new Mat();
-        Scalar rectColor = new Scalar (255.0, 0.0, 0.0);
+        Scalar rectColor = new Scalar (255.0, 0.0, 0.0); //RGB COLORS FOR RED
         @Override
         public Mat processFrame(Mat input) {
 
@@ -71,7 +72,7 @@ public class OpenCV extends OpMode{
             Imgproc.rectangle(outPut, leftRect, rectColor, 2);  //These two lines of code allow you to see your boundary boxes on the driver station
             Imgproc.rectangle(outPut, rightRect, rectColor, 2);
 
-            leftCrop = YCbCr.submat(leftRect); //These submats are the subframes of the camera, their boundaries were defined in lines 66 and 67 of the code above. Their parameters can thus be changed.
+            leftCrop = YCbCr.submat(leftRect); //These submats are the subframes of the camera, their boundaries were defined in lines 68 and 69 of the code above. Their parameters can thus be changed.
             rightCrop = YCbCr.submat(rightRect);
 
             Core.extractChannel(leftCrop, leftCrop, 2); //These two lines choose which color to extract based on their YCbCr values. In this case, the YCbCr value for red is 2.
