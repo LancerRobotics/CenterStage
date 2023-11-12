@@ -5,13 +5,14 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.auton.AutonCommon;
 import org.firstinspires.ftc.teamcode.auton.AutonStartMode;
+import org.firstinspires.ftc.teamcode.opmode.MecanumTeleOp;
 
 
 /**
  * Bootstrap wrapper class for {@link AutonCommon}
  * Any code should be stored in {@link AutonCommon}, not this class.
  */
-@Autonomous
+@Autonomous(preselectTeleOp = "MecanumTeleOp")
 public class RedFrontStage extends OpMode {
     public static final AutonStartMode AUTON_START_MODE = AutonStartMode.RED_FRONT_STAGE;
     final AutonCommon auton = new AutonCommon(this, AUTON_START_MODE);

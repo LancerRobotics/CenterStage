@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.auton.AutonStartMode;
  * Bootstrap wrapper class for {@link AutonCommon}
  * Any code should be stored in {@link AutonCommon}, not this class.
  */
-@Autonomous
+@Autonomous(preselectTeleOp = "MecanumTeleOp")
 public class BlueFrontStage extends OpMode {
     public static final AutonStartMode AUTON_START_MODE = AutonStartMode.BLUE_FRONT_STAGE;
     final AutonCommon auton = new AutonCommon(this, AUTON_START_MODE);
