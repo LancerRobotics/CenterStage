@@ -102,10 +102,17 @@ public class MecanumTeleOp extends LinearOpMode {
         frontOuttake.setPower(frontOuttakePower);
     }
 
-    private static final double LEFT_SERVO_HORIZONTAL_POSITION = 0.1d;
+    private static final double LEFT_SERVO_HORIZONTAL_POSITION = 0.54d;
     private static final double LEFT_SERVO_VERTICAL_POSITION = 0.83d;
     private static final double RIGHT_SERVO_HORIZONTAL_POSITION = 1.0d - LEFT_SERVO_HORIZONTAL_POSITION;
     private static final double RIGHT_SERVO_VERTICAL_POSITION = 1.0d - LEFT_SERVO_VERTICAL_POSITION;
+
+    public void initOuttakeBasket() {
+        final @NotNull Servo leftOuttake = hardwareMap.servo.get(LancersBotConfig.LEFT_OUTTAKE_SERVO);
+        final @NotNull Servo rightOuttake = hardwareMap.servo.get(LancersBotConfig.RIGHT_OUTTAKE_SERVO);
+        leftOuttake.setPosition(LEFT_SERVO_HORIZONTAL_POSITION);
+        rightOuttake.setPosition(RIGHT_SERVO_HORIZONTAL_POSITION);
+    }
 
     public void outtakeAngularMovement(final @NotNull Gamepad gamepad) {
         // Right stick x
@@ -123,7 +130,7 @@ public class MecanumTeleOp extends LinearOpMode {
             rightOuttake.setPosition(RIGHT_SERVO_VERTICAL_POSITION);
         } else {
             final double currentLeftPos = leftOuttake.getPosition();
-            double targetLeftPos = currentLeftPos + (gamepad.right_stick_x * 0.05d);
+            double targetLeftPos = currentLeftPos + (gamepad.right_stick_x * 0.005d);
 
             // Make sure targetLeftPos is in range for servo
             if (targetLeftPos > 0.9d) {
@@ -159,6 +166,7 @@ public class MecanumTeleOp extends LinearOpMode {
         // https://gm0.org/ja/latest/docs/software/tutorials/gamepad.
 
         configure();
+        initOuttakeBasket();
 
         waitForStart();
 
