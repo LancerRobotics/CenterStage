@@ -76,7 +76,7 @@ public class MecanumTeleOp extends LinearOpMode {
         // Left slider moves counterclockwise to contract
         // Right slider moves clockwise to contract
 
-        float sliderPower = -gamepad.left_stick_y;
+        float sliderPower = -gamepad.left_stick_y * 0.5f; // Indirectly limit maximum speed
 
         // Setup deadzone so sliders brake
         if (Math.abs(sliderPower) < STICK_THRESHOLD) {
@@ -171,7 +171,7 @@ public class MecanumTeleOp extends LinearOpMode {
 
             // Gamepad 2
             intakeMovement(gamepad2);
-            sliderMovement(gamepad2);
+//            sliderMovement(gamepad2); // TODO: FIX ME! Please!
             outtakeLinearMovement(gamepad2);
             outtakeAngularMovement(gamepad2);
 
