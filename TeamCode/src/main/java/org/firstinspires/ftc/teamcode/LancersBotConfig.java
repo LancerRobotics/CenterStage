@@ -21,8 +21,8 @@ public class LancersBotConfig {
     // 1
     // 2
     // 3
-    // 4
-    // 5
+    public static final String LEFT_OUTTAKE_SERVO = "outtakeLeft"; // normal // 4
+    public static final String FRONT_OUTTAKE_SERVO = "outtakeFront"; // continuous // 5
 
     // == EXPANSION HUB / RIGHT ==
 
@@ -33,8 +33,8 @@ public class LancersBotConfig {
     // 3
 
     // Expansion Hub -- Servos
-    // 0
-    // 1
+    public static final String BACK_OUTTAKE_SERVO = "outtakeBack"; // continuous // 0
+    public static final String RIGHT_OUTTAKE_SERVO = "outtakeRight"; // normal // 1
     // 2
     // 3
     // 4
