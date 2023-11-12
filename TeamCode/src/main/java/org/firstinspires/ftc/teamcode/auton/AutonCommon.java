@@ -69,10 +69,6 @@ public class AutonCommon {
     class LancerBotPipeline extends OpenCvPipeline {
         final @NotNull Scalar RED_SCALAR = new Scalar(255.0d, 0.0d, 0.0d);
         final @NotNull Scalar BLUE_SCALAR = new Scalar(0.0d, 0.0d, 255.0d);
-        Mat leftCrop;
-        Mat rightCrop;
-        double leftavgfin;
-        double rightavgfin;
         final Scalar allianceColor; // This will be the color
 
         public LancerBotPipeline() {
@@ -88,8 +84,15 @@ public class AutonCommon {
             }
         }
 
+        Mat leftCrop;
+        Mat rightCrop;
+        double leftavgfin;
+        double rightavgfin;
+
         @Override
         public @NotNull Mat processFrame(@NotNull Mat input) {
+            // TODO: Find which spikestrip the TSE is located on top of
+
             final Mat output = new Mat();
             final Mat yCbCrMat = new Mat();
             input.copyTo(output);

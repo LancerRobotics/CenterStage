@@ -13,12 +13,15 @@ import org.jetbrains.annotations.NotNull;
 
 @TeleOp
 public class MecanumTeleOp extends LinearOpMode {
+    final static float TRIGGER_THRESHOLD = 0.1f;
+    final static float STICK_THRESHOLD = 0.1f;
     // Loop Tasks
 
     /**
      * Implementation of <a href="https://gm0.org/fr/latest/docs/software/tutorials/mecanum-drive.html">...</a>
-     * @author Alex Zhang
+     *
      * @param gamepad Gamepad that moves the robot
+     * @author Alex Zhang
      */
     private void mecanumMovement(final @NotNull Gamepad gamepad) {
         final @NotNull DcMotor leftFront = hardwareMap.dcMotor.get(LancersBotConfig.LEFT_FRONT_MOTOR);
@@ -35,8 +38,6 @@ public class MecanumTeleOp extends LinearOpMode {
         // Denominator is the largest motor power (absolute value) or 1
         // This ensures all the powers maintain the same ratio,
         // but only if at least one is out of the range [-1, 1]
-
-        // PW - I can't confirm that this is necessary.
         final double denominator = Math.max(Math.abs(ly) + Math.abs(lx) + Math.abs(rx), 1);
 
         final double frontLeftPower = (ly + lx + rx) / denominator;
@@ -53,7 +54,15 @@ public class MecanumTeleOp extends LinearOpMode {
     public void intakeMovement(final @NotNull Gamepad gamepad) {
         final @NotNull DcMotor intakeMotor = hardwareMap.dcMotor.get(LancersBotConfig.INTAKE_MOTOR);
 
-        intakeMotor.setPower(gamepad.right_trigger);
+        if (gamepad.right_trigger > TRIGGER_THRESHOLD) {
+            intakeMotor.setPower(gamepad.right_trigger);
+        } else if (gamepad.left_trigger > TRIGGER_THRESHOLD) {
+            // for placing pixels forward (mainly redundant code from auton)
+            // divided by 2 to give finer control than SUCKING IN pixels
+            intakeMotor.setPower(-gamepad.left_trigger / 2.0d);
+        } else {
+            intakeMotor.setPower(0.0d);
+        }
     }
 
     public void sliderMovement(final @NotNull Gamepad gamepad) {
@@ -67,22 +76,68 @@ public class MecanumTeleOp extends LinearOpMode {
         // Left slider moves counterclockwise to contract
         // Right slider moves clockwise to contract
 
-        final float leftSliderPower = gamepad.left_stick_y;
-        final float rightSliderPower = -leftSliderPower;
+        float sliderPower = -gamepad.left_stick_y;
+
+        // Setup deadzone so sliders brake
+        if (Math.abs(sliderPower) < STICK_THRESHOLD) {
+            sliderPower = 0.0f;
+        }
+
+        final float leftSliderPower = sliderPower;
+        final float rightSliderPower = -sliderPower;
 
         leftSlider.setPower(leftSliderPower);
         rightSlider.setPower(rightSliderPower);
     }
 
-    public void outtakeMovement(final @NotNull Gamepad gamepad) {
-        // Right stick x
-        final @NotNull Servo leftOuttake = hardwareMap.servo.get(LancersBotConfig.LEFT_OUTTAKE_SERVO);
-        final @NotNull Servo rightOuttake = hardwareMap.servo.get(LancersBotConfig.RIGHT_OUTTAKE_SERVO);
-
+    public void outtakeLinearMovement(final @NotNull Gamepad gamepad) {
+        // Right stick y
         final @NotNull CRServo backOuttake = hardwareMap.crservo.get(LancersBotConfig.BACK_OUTTAKE_SERVO);
         final @NotNull CRServo frontOuttake = hardwareMap.crservo.get(LancersBotConfig.FRONT_OUTTAKE_SERVO);
 
-        // TODO: OutTake TeleOp
+        final float backOuttakePower = gamepad.right_stick_y;
+        final float frontOuttakePower = -backOuttakePower;
+
+        backOuttake.setPower(backOuttakePower);
+        frontOuttake.setPower(frontOuttakePower);
+    }
+
+    private static final double LEFT_SERVO_HORIZONTAL_POSITION = 0.1d;
+    private static final double LEFT_SERVO_VERTICAL_POSITION = 0.83d;
+    private static final double RIGHT_SERVO_HORIZONTAL_POSITION = 1.0d - LEFT_SERVO_HORIZONTAL_POSITION;
+    private static final double RIGHT_SERVO_VERTICAL_POSITION = 1.0d - LEFT_SERVO_VERTICAL_POSITION;
+
+    public void outtakeAngularMovement(final @NotNull Gamepad gamepad) {
+        // Right stick x
+        // Setup button to set servos to special angle
+        final @NotNull Servo leftOuttake = hardwareMap.servo.get(LancersBotConfig.LEFT_OUTTAKE_SERVO);
+        final @NotNull Servo rightOuttake = hardwareMap.servo.get(LancersBotConfig.RIGHT_OUTTAKE_SERVO);
+
+        if (gamepad.b) {
+            // Set to horizontal position
+            leftOuttake.setPosition(LEFT_SERVO_HORIZONTAL_POSITION);
+            rightOuttake.setPosition(RIGHT_SERVO_HORIZONTAL_POSITION);
+        } else if (gamepad.a) {
+            // Set to vertical position
+            leftOuttake.setPosition(LEFT_SERVO_VERTICAL_POSITION);
+            rightOuttake.setPosition(RIGHT_SERVO_VERTICAL_POSITION);
+        } else {
+            final double currentLeftPos = leftOuttake.getPosition();
+            double targetLeftPos = currentLeftPos + (gamepad.right_stick_x * 0.05d);
+
+            // Make sure targetLeftPos is in range for servo
+            if (targetLeftPos > 0.9d) {
+                targetLeftPos = 0.9d;
+            } else if (targetLeftPos < 0.1d) {
+                targetLeftPos = 0.1d;
+            }
+
+            final double targetRightPos = 1 - targetLeftPos;
+
+            leftOuttake.setPosition(targetLeftPos);
+            rightOuttake.setPosition(targetRightPos);
+            telemetry.addData("Left outtake servo position: ", targetLeftPos);
+        }
     }
 
     // Master code
@@ -117,7 +172,10 @@ public class MecanumTeleOp extends LinearOpMode {
             // Gamepad 2
             intakeMovement(gamepad2);
             sliderMovement(gamepad2);
-            outtakeMovement(gamepad2);
+            outtakeLinearMovement(gamepad2);
+            outtakeAngularMovement(gamepad2);
+
+            telemetry.update();
         }
     }
 }
