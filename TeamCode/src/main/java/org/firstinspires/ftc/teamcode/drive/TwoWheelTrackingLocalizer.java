@@ -7,7 +7,8 @@ import com.acmerobotics.roadrunner.localization.TwoTrackingWheelLocalizer;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.teamcode.LancersBotConfig;
+import org.firstinspires.ftc.teamcode.lancers.LancersBotConfig;
+import org.firstinspires.ftc.teamcode.lancers.util.UnitUtil;
 import org.firstinspires.ftc.teamcode.util.Encoder;
 
 import java.util.Arrays;
@@ -34,16 +35,18 @@ import java.util.List;
  *    \--------------/
  *
  */
+// https://learnroadrunner.com/dead-wheels.html#two-wheel-odometry
 public class TwoWheelTrackingLocalizer extends TwoTrackingWheelLocalizer {
     public static double TICKS_PER_REV = 8192;
     public static double WHEEL_RADIUS = 1.37795276; // in
     public static double GEAR_RATIO = StandardTrackingWheelLocalizer.GEAR_RATIO; // output (wheel) speed / input (encoder) speed
 
-    public static double PARALLEL_X = 5.0; // X is the up and down direction
-    public static double PARALLEL_Y = -6.5; // Y is the strafe direction
+    // See https://media.discordapp.net/attachments/758394775728160797/1175844683235209347/image.png?ex=656cb5b2&is=655a40b2&hm=005702568aa1f721b8270147c50300fc592aa2cd42fe9284f820e122ac609c0f&=
+    public static double PARALLEL_X = UnitUtil.mmToInches(-182.418d); // X is the up and down direction
+    public static double PARALLEL_Y = UnitUtil.mmToInches(-112.327d); // Y is the strafe direction
 
-    public static double PERPENDICULAR_X = -5.0;
-    public static double PERPENDICULAR_Y = -6.5;
+    public static double PERPENDICULAR_X = UnitUtil.mmToInches(-184.853d);
+    public static double PERPENDICULAR_Y = UnitUtil.mmToInches(91.071d);
 
     // Multipliers to adjust for dimensional inaccuracy in both direction
     // Added https://learnroadrunner.com/dead-wheels.html#adjusting-the-wheel-radius

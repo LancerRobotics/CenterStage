@@ -5,13 +5,20 @@
  */
 
 buildscript {
+    // Appendices for changes:
+    // https://ftc-docs.firstinspires.org/en/latest/programming_resources/shared/installing_kotlin/Installing-Kotlin.html
+
+    ext.kotlin_version = '1.8.20' // <----- ADD THIS LINE, UPDATE VERSION TO LATEST IF NEEDED
+
     repositories {
         mavenCentral()
         google()
     }
+
     dependencies {
         // Note for FTC Teams: Do not modify this yourself.
         classpath 'com.android.tools.build:gradle:7.2.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version" // <----- ADD THIS LINE
     }
 }
 

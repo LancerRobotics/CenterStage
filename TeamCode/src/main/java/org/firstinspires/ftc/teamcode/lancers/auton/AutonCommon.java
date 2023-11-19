@@ -1,9 +1,9 @@
-package org.firstinspires.ftc.teamcode.auton;
+package org.firstinspires.ftc.teamcode.lancers.auton;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.teamcode.LancersBotConfig;
+import org.firstinspires.ftc.teamcode.lancers.LancersBotConfig;
 import org.jetbrains.annotations.NotNull;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -20,6 +20,7 @@ import org.openftc.easyopencv.OpenCvWebcam;
  * Holds common  code shared between different auton modes.
  * Implements OpenCV & Roadrunner.
  */
+@Deprecated // Migrate to new DoubleVision class & initialize RoadRunner there
 public class AutonCommon {
     // Constants
     // The webcam view window may need to be tuned for performance later

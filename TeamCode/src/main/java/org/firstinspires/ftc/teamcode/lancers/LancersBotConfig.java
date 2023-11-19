@@ -1,10 +1,9 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.lancers;
 
 /**
  * Constants reflecting the LancersBotConfig on the Driver Hub
  */
-// Suitable for comp 1 "Centering Pass"
-public class LancersBotConfig {
+public final class LancersBotConfig {
     private LancersBotConfig() {
     }
 

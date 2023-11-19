@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.auton;
+package org.firstinspires.ftc.teamcode.lancers.auton;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 
@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 public enum AutonStartMode {
     // Coordinates from RRPathGen's coordinate system
+    // TODO: These startpositions are wrong
     BLUE_BACK_STAGE(new Pose2d(11.11d, 36.50d, Math.toRadians(-90.0d))),
     BLUE_FRONT_STAGE(new Pose2d(-36.50d, 35.90d, Math.toRadians(-90.0d))),
     RED_BACK_STAGE(new Pose2d(-36.90d, -35.70d, Math.toRadians(90.0d))),

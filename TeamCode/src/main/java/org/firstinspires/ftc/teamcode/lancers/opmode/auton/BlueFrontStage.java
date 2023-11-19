@@ -1,10 +1,10 @@
-package org.firstinspires.ftc.teamcode.opmode.auton;
+package org.firstinspires.ftc.teamcode.lancers.opmode.auton;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import org.firstinspires.ftc.teamcode.auton.AutonCommon;
-import org.firstinspires.ftc.teamcode.auton.AutonStartMode;
+import org.firstinspires.ftc.teamcode.lancers.auton.AutonCommon;
+import org.firstinspires.ftc.teamcode.lancers.auton.AutonStartMode;
 
 /**
  * Bootstrap wrapper class for {@link AutonCommon}

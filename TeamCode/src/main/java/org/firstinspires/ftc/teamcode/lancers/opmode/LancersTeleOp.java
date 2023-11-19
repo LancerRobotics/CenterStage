@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.opmode;
+package org.firstinspires.ftc.teamcode.lancers.opmode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -8,12 +8,12 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.LancersBotConfig;
+import org.firstinspires.ftc.teamcode.lancers.LancersBotConfig;
 import org.jetbrains.annotations.NotNull;
 
 @TeleOp
-public class MecanumTeleOp extends LinearOpMode {
-    final static float TRIGGER_THRESHOLD = 0.1f;
+public class LancersTeleOp extends LinearOpMode {
+    final static float TRIGGER_THRESHOLD = 0.15f;
     final static float STICK_THRESHOLD = 0.1f;
     // Loop Tasks
 
@@ -179,7 +179,7 @@ public class MecanumTeleOp extends LinearOpMode {
 
             // Gamepad 2
             intakeMovement(gamepad2);
-//            sliderMovement(gamepad2); // TODO: FIX ME! Please!
+            sliderMovement(gamepad2);
             outtakeLinearMovement(gamepad2);
             outtakeAngularMovement(gamepad2);
 
