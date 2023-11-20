@@ -6,22 +6,23 @@ import org.jetbrains.annotations.NotNull;
 
 public enum AutonStartMode {
     // Coordinates from RRPathGen's coordinate system
-    // TODO: These startpositions are wrong
-    BLUE_BACK_STAGE(new Pose2d(11.11d, 36.50d, Math.toRadians(-90.0d))),
-    BLUE_FRONT_STAGE(new Pose2d(-36.50d, 35.90d, Math.toRadians(-90.0d))),
-    RED_BACK_STAGE(new Pose2d(-36.90d, -35.70d, Math.toRadians(90.0d))),
-    RED_FRONT_STAGE(new Pose2d(11.11d, -36.50d, Math.toRadians(90.0d)));
+    BLUE_BACK_STAGE,
+    BLUE_FRONT_STAGE,
+    RED_BACK_STAGE,
+    RED_FRONT_STAGE;
 
-    // @Getter // I would much prefer to use Lombok, but as of 2023-11-11, Android Studio Giraffe does not support it
-    private final @NotNull Pose2d startPose;
-
-    // TODO: Replace with lombok
     public @NotNull Pose2d getStartPose() {
-        return startPose;
-    }
-
-    AutonStartMode(final @NotNull Pose2d startPose) {
-        this.startPose = startPose;
+        switch (this) {
+            case RED_BACK_STAGE:
+                return new Pose2d(11.37, -60, Math.toRadians(90));
+            case RED_FRONT_STAGE:
+                return new Pose2d(-37.46, -60, Math.toRadians(90));
+            case BLUE_BACK_STAGE:
+                return new Pose2d(11.37, 60, Math.toRadians(-90));
+            case BLUE_FRONT_STAGE:
+            default: // already exhaustive
+                return new Pose2d(-37.46, 60, Math.toRadians(-90));
+        }
     }
 
     public enum AllianceColor {
