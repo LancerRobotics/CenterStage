@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.lancers.auton;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.lancers.LancersBotConfig;
 import org.jetbrains.annotations.NotNull;
@@ -10,16 +9,13 @@ import org.opencv.core.Mat;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
-import org.openftc.easyopencv.OpenCvPipeline;
-import org.openftc.easyopencv.OpenCvWebcam;
+import org.openftc.easyopencv.*;
 
 /**
  * Holds common code shared between different auton modes.
  * Implements OpenCV & Roadrunner.
  */
+// Contains OpenCV Code from tutorial https://www.youtube.com/watch?v=547ZUZiYfQE&t=37s
 public class AutonCommon {
     // Constants
     // The webcam view window may need to be tuned for performance later
@@ -29,15 +25,14 @@ public class AutonCommon {
     // Initialization code
     final OpMode opMode;
     final AutonStartMode startMode;
+    OpenCvWebcam webcam = null;
+
+    boolean loopReached = false;
 
     public AutonCommon(final OpMode opMode, final AutonStartMode startMode) {
         this.opMode = opMode;
         this.startMode = startMode;
     }
-
-    // OpenCV Code from tutorial https://www.youtube.com/watch?v=547ZUZiYfQE&t=37s
-
-    OpenCvWebcam webcam = null;
 
     public void init() {
         final WebcamName webcamName = opMode.hardwareMap.get(WebcamName.class, LancersBotConfig.WEBCAM);
@@ -60,8 +55,6 @@ public class AutonCommon {
         });
     }
 
-    boolean loopReached = false;
-
     public void loop() {
         loopReached = true;
     }
@@ -70,6 +63,10 @@ public class AutonCommon {
         final @NotNull Scalar RED_SCALAR = new Scalar(255.0d, 0.0d, 0.0d);
         final @NotNull Scalar BLUE_SCALAR = new Scalar(0.0d, 0.0d, 255.0d);
         final Scalar allianceColor; // This will be the color
+        Mat leftCrop;
+        Mat rightCrop;
+        double leftavgfin;
+        double rightavgfin;
 
         public LancerBotPipeline() {
             super();
@@ -83,11 +80,6 @@ public class AutonCommon {
                     break;
             }
         }
-
-        Mat leftCrop;
-        Mat rightCrop;
-        double leftavgfin;
-        double rightavgfin;
 
         @Override
         public @NotNull Mat processFrame(@NotNull Mat input) {
@@ -133,10 +125,9 @@ public class AutonCommon {
             //if you wanted to split it into more boxes, you would have to specify parameters at lines 66-67,
             //then modify everything else and assign different scalar values.
             //You would then modify this statement to include an else-if.
-            if (leftavgfin > rightavgfin){
+            if (leftavgfin > rightavgfin) {
                 AutonCommon.this.opMode.telemetry.addLine("left"); //If the average amount of color that is being sought after is larger in the left box than the right box, the robot identifies it as being on the left
-            }
-            else{
+            } else {
                 AutonCommon.this.opMode.telemetry.addLine("right");//otherwise, the robot knows that there is a majority of the sought after color on the right
             }
 

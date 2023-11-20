@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.lancers.auton;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-
 import org.jetbrains.annotations.NotNull;
 
 public enum AutonStartMode {
@@ -25,23 +24,6 @@ public enum AutonStartMode {
         }
     }
 
-    public enum AllianceColor {
-        // TODO: Dynamic parking location to prevent colliding with other teams
-        BLUE(new Pose2d(60.30d, 60.30d, Math.toRadians(0))),
-        RED(new Pose2d(60.30d, -60.30d, Math.toRadians(0)));
-
-        private final @NotNull Pose2d parkingPose;
-
-        // TODO: Replace with lombok
-        public @NotNull Pose2d getParkingPose() {
-            return parkingPose;
-        }
-
-        AllianceColor(final @NotNull Pose2d parkingPose) {
-            this.parkingPose = parkingPose;
-        }
-    }
-
     public @NotNull AllianceColor getAllianceColor() {
         switch (this) {
             case RED_BACK_STAGE:
@@ -52,5 +34,10 @@ public enum AutonStartMode {
             default: // already exhaustive
                 return AllianceColor.BLUE;
         }
+    }
+
+    public enum AllianceColor {
+        BLUE,
+        RED
     }
 }
