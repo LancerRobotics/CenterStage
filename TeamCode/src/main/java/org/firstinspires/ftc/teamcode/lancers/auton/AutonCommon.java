@@ -17,10 +17,9 @@ import org.openftc.easyopencv.OpenCvPipeline;
 import org.openftc.easyopencv.OpenCvWebcam;
 
 /**
- * Holds common  code shared between different auton modes.
+ * Holds common code shared between different auton modes.
  * Implements OpenCV & Roadrunner.
  */
-@Deprecated // Migrate to new DoubleVision class & initialize RoadRunner there
 public class AutonCommon {
     // Constants
     // The webcam view window may need to be tuned for performance later
