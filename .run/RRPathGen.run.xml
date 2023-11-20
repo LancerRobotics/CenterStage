@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="RRPathGen" type="JarApplication">
+    <option name="JAR_PATH" value="$PROJECT_DIR$/utils/RRPathGen-1.5.1.jar" />
+    <option name="WORKING_DIRECTORY" value="." />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <method v="2" />
+  </configuration>
+</component>
