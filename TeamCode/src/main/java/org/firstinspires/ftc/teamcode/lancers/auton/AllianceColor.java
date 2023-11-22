@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.lancers.auton.fullauton;
+package org.firstinspires.ftc.teamcode.lancers.auton;
 
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import org.jetbrains.annotations.NotNull;

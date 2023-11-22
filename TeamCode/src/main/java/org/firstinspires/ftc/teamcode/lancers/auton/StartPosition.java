@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.lancers.auton;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import org.firstinspires.ftc.teamcode.lancers.auton.fullauton.AllianceColor;
 import org.jetbrains.annotations.NotNull;
 
 public enum StartPosition {
