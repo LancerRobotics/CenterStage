@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.lancers.auton;
 
 
-public enum TSELocation {
+public enum TeamScoringElementLocation {
     LEFT,
     CENTER,
     RIGHT

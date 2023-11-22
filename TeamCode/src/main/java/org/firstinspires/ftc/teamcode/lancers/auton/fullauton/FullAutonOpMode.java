@@ -1,8 +1,9 @@
-package org.firstinspires.ftc.teamcode.lancers.auton;
+package org.firstinspires.ftc.teamcode.lancers.auton.fullauton;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.lancers.LancersBotConfig;
+import org.firstinspires.ftc.teamcode.lancers.auton.StartPosition;
 import org.jetbrains.annotations.NotNull;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -16,27 +17,26 @@ import org.openftc.easyopencv.*;
  * Implements OpenCV & Roadrunner.
  */
 // Contains OpenCV Code from tutorial https://www.youtube.com/watch?v=547ZUZiYfQE&t=37s
-public class AutonCommon {
+public class FullAutonOpMode extends OpMode {
     // Constants
     // The webcam view window may need to be tuned for performance later
     final int WEBCAM_WIDTH = 720;
     final int WEBCAM_HEIGHT = 720;
 
     // Initialization code
-    final OpMode opMode;
-    final AutonStartMode startMode;
+    final @NotNull StartPosition startMode;
     OpenCvWebcam webcam = null;
 
     boolean loopReached = false;
 
-    public AutonCommon(final OpMode opMode, final AutonStartMode startMode) {
-        this.opMode = opMode;
+    public FullAutonOpMode(final @NotNull StartPosition startMode) {
+        super();
         this.startMode = startMode;
     }
 
     public void init() {
-        final WebcamName webcamName = opMode.hardwareMap.get(WebcamName.class, LancersBotConfig.WEBCAM);
-        final int cameraMonitorViewId = opMode.hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", opMode.hardwareMap.appContext.getPackageName());
+        final WebcamName webcamName = hardwareMap.get(WebcamName.class, LancersBotConfig.WEBCAM);
+        final int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
 
         webcam = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
         webcam.setPipeline(new LancerBotPipeline());
@@ -70,7 +70,7 @@ public class AutonCommon {
 
         public LancerBotPipeline() {
             super();
-            switch (AutonCommon.this.startMode.getAllianceColor()) {
+            switch (FullAutonOpMode.this.startMode.getAllianceColor()) {
                 case RED:
                     allianceColor = RED_SCALAR;
                     break;
@@ -92,13 +92,13 @@ public class AutonCommon {
             // Remember! This code needs to be fast! The CPU in the control hub is a piece of garbage.
             // Do not block this code! This thread needs to be spinning for fast I/O.
 
-            if (!AutonCommon.this.loopReached) {
+            if (!FullAutonOpMode.this.loopReached) {
                 // We cannot move around until the loop is reached,
                 // and until we can move around we will not be able to detect where the TSE is located.
                 return output;
             }
 
-            AutonCommon.this.opMode.telemetry.addLine("pipeline running");
+            telemetry.addLine("pipeline running");
 
             Rect leftRect = new Rect(1, 1, WEBCAM_WIDTH / 2, WEBCAM_HEIGHT); //These two lines of code set parameters for boxes of recognition inside of camera view
             Rect rightRect = new Rect(WEBCAM_WIDTH / 2, 1, WEBCAM_WIDTH / 2, WEBCAM_HEIGHT); //Our camera is 720 x 720, so these two lines of code have divided the field of view in half.
@@ -126,9 +126,9 @@ public class AutonCommon {
             //then modify everything else and assign different scalar values.
             //You would then modify this statement to include an else-if.
             if (leftavgfin > rightavgfin) {
-                AutonCommon.this.opMode.telemetry.addLine("left"); //If the average amount of color that is being sought after is larger in the left box than the right box, the robot identifies it as being on the left
+                telemetry.addLine("left"); //If the average amount of color that is being sought after is larger in the left box than the right box, the robot identifies it as being on the left
             } else {
-                AutonCommon.this.opMode.telemetry.addLine("right");//otherwise, the robot knows that there is a majority of the sought after color on the right
+                telemetry.addLine("right");//otherwise, the robot knows that there is a majority of the sought after color on the right
             }
 
             return output;

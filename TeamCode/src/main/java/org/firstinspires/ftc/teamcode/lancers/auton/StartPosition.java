@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.lancers.auton;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import org.firstinspires.ftc.teamcode.lancers.auton.fullauton.AllianceColor;
 import org.jetbrains.annotations.NotNull;
 
-public enum AutonStartMode {
-    // Coordinates from RRPathGen's coordinate system
+public enum StartPosition {
+    // Coordinates from RRPathGen/MeepMeep/First's coordinate system
+    // https://learnroadrunner.com/tools.html#tools
     BLUE_BACK_STAGE,
     BLUE_FRONT_STAGE,
     RED_BACK_STAGE,
@@ -34,10 +36,5 @@ public enum AutonStartMode {
             default: // already exhaustive
                 return AllianceColor.BLUE;
         }
-    }
-
-    public enum AllianceColor {
-        BLUE,
-        RED
     }
 }
