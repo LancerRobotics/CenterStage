@@ -38,7 +38,7 @@ import java.util.List;
 // https://learnroadrunner.com/dead-wheels.html#two-wheel-odometry
 public class TwoWheelTrackingLocalizer extends TwoTrackingWheelLocalizer {
     public static double TICKS_PER_REV = 8192;
-    public static double WHEEL_RADIUS = 1.37795276; // in
+    public static double WHEEL_RADIUS = 1.37795276d / 2d; // in // was originally diameter, hence /2
     public static double GEAR_RATIO = StandardTrackingWheelLocalizer.GEAR_RATIO; // output (wheel) speed / input (encoder) speed
 
     // See https://media.discordapp.net/attachments/758394775728160797/1175844683235209347/image.png?ex=656cb5b2&is=655a40b2&hm=005702568aa1f721b8270147c50300fc592aa2cd42fe9284f820e122ac609c0f&=
@@ -50,8 +50,16 @@ public class TwoWheelTrackingLocalizer extends TwoTrackingWheelLocalizer {
 
     // Multipliers to adjust for dimensional inaccuracy in both direction
     // Added https://learnroadrunner.com/dead-wheels.html#adjusting-the-wheel-radius
-    public static double X_MULTIPLIER = 1;
-    public static double Y_MULTIPLIER = 1;
+
+    // NOTE: only one trial was done for each of these, so it is theoretically possible that the multipliers are off
+    public static double CALIBRATION_X_TRAVELLED_INCHES = 104.5d;
+    public static double CALIBRATION_X_MEASURED_INCHES = 104.027d; // dont take more than 3 decimal places, unreliable
+
+    public static double CALIBRATION_Y_TRAVELLED_INCHES = -103.25d; // did this backwards
+    public static double CALIBRATION_Y_MEASURED_INCHES = -102.891d;
+
+    public static double X_MULTIPLIER = CALIBRATION_X_TRAVELLED_INCHES / CALIBRATION_X_MEASURED_INCHES;
+    public static double Y_MULTIPLIER = CALIBRATION_Y_TRAVELLED_INCHES / CALIBRATION_Y_MEASURED_INCHES;
 
     // Parallel/Perpendicular to the forward axis
     // Parallel wheel is parallel to the forward axis
@@ -72,6 +80,9 @@ public class TwoWheelTrackingLocalizer extends TwoTrackingWheelLocalizer {
         perpendicularEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, LancersBotConfig.LEFT_FRONT_MOTOR)); // Control hub port 0
 
         // TODO: reverse any encoders using Encoder.setDirection(Encoder.Direction.REVERSE)
+        // when bot moves in negative x direction, parallelEncoder ticks increase
+        // when bot moves in negative y direction, perpendicularEncoder ticks increase
+        // therefore, neither encoder needs to be reversed
     }
 
     public static double encoderTicksToInches(double ticks) {
@@ -105,9 +116,11 @@ public class TwoWheelTrackingLocalizer extends TwoTrackingWheelLocalizer {
         //  competing magnetic encoders), change Encoder.getRawVelocity() to Encoder.getCorrectedVelocity() to enable a
         //  compensation method
 
+        // we are using REV Through Bore encoders
+
         return Arrays.asList(
-                encoderTicksToInches(parallelEncoder.getRawVelocity()) * X_MULTIPLIER,
-                encoderTicksToInches(perpendicularEncoder.getRawVelocity()) * Y_MULTIPLIER
+                encoderTicksToInches(parallelEncoder.getCorrectedVelocity()) * X_MULTIPLIER,
+                encoderTicksToInches(perpendicularEncoder.getCorrectedVelocity()) * Y_MULTIPLIER
         );
     }
 }
