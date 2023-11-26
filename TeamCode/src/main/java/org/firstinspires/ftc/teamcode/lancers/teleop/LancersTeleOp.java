@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode.lancers.teleop;
 
-import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.*;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.lancers.LancersBotConfig;
 import org.firstinspires.ftc.teamcode.lancers.util.Constants;
 import org.firstinspires.ftc.teamcode.lancers.util.LancersMecanumDrive;
@@ -146,24 +148,6 @@ public final class LancersTeleOp extends LinearOpMode {
         }
     }
 
-    public void configure() {
-        final @NotNull DcMotor leftFront = hardwareMap.dcMotor.get(LancersBotConfig.LEFT_FRONT_MOTOR);
-        final @NotNull DcMotor leftRear = hardwareMap.dcMotor.get(LancersBotConfig.LEFT_REAR_MOTOR);
-
-        // Reverse the right side motors. This may be wrong for your setup.
-        // If your robot moves backwards when commanded to go forwards,
-        // reverse the left side instead.
-        // See the note about this earlier on this page.
-        leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        // Turn on bulk reads to help optimize loop times
-        // https://github.com/NoahBres/road-runner-quickstart/blob/b4b850fa1b7492ccc668c4955c682fa19cf101c9/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/drive/advanced/TeleOpJustLocalizer.java#L81C13-L84C14
-        for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
-            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
-        }
-    }
-
     @Override
     public void runOpMode() throws InterruptedException {
         // https://gm0.org/ja/latest/docs/software/tutorials/gamepad
@@ -172,7 +156,7 @@ public final class LancersTeleOp extends LinearOpMode {
         // NOTE: If an auton didn't run or if the global state in the drive persisted, the pose data may be incorrect.
         //       This can be fixed by running an auton that requires the bot be in a specific starting positon.
         try (final LancersMecanumDrive drive = new LancersMecanumDrive(hardwareMap)) {
-            configure();
+            LancersBotConfig.configureMotors(hardwareMap);
             initOuttakeBasket();
 
             waitForStart();

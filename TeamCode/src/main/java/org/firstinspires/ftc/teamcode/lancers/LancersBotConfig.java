@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode.lancers;
 
+import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -8,6 +12,9 @@ import org.jetbrains.annotations.NotNull;
 public final class LancersBotConfig {
     private LancersBotConfig() {
     }
+
+    private static final @NotNull String WIFI_SSID = "FTC-3415";
+    private static final @NotNull String WIFI_PASSWORD = "MaChiChi";
 
     // == CONTROL HUB / LEFT ==
 
@@ -44,4 +51,29 @@ public final class LancersBotConfig {
     // I/O
     public static final @NotNull String WEBCAM = "webcam";
     public static final @NotNull String IMU_NAME = "imu";
+
+    /**
+     * Configure the motors to go in the correct direction
+     */
+    public static void configureMotors(final @NotNull HardwareMap hardwareMap) {
+        final @NotNull DcMotor leftFront = hardwareMap.dcMotor.get(LancersBotConfig.LEFT_FRONT_MOTOR);
+        final @NotNull DcMotor leftRear = hardwareMap.dcMotor.get(LancersBotConfig.LEFT_REAR_MOTOR);
+        final @NotNull DcMotor rightFront = hardwareMap.dcMotor.get(LancersBotConfig.RIGHT_FRONT_MOTOR);
+        final @NotNull DcMotor rightRear = hardwareMap.dcMotor.get(LancersBotConfig.RIGHT_REAR_MOTOR);
+
+        // Reverse the right side motors. This may be wrong for your setup.
+        // If your robot moves backwards when commanded to go forwards,
+        // reverse the left side instead.
+        // See the note about this earlier on this page.
+        leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightFront.setDirection(DcMotorSimple.Direction.FORWARD);
+        rightRear.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        // Turn on bulk reads to help optimize loop times
+        // https://github.com/NoahBres/road-runner-quickstart/blob/b4b850fa1b7492ccc668c4955c682fa19cf101c9/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/drive/advanced/TeleOpJustLocalizer.java#L81C13-L84C14
+        for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        }
+    }
 }
