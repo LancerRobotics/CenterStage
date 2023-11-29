@@ -8,14 +8,13 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.lancers.LancersBotConfig;
 import org.firstinspires.ftc.teamcode.lancers.util.Constants;
+import org.firstinspires.ftc.teamcode.lancers.util.ControlUtil;
 import org.firstinspires.ftc.teamcode.lancers.util.LancersMecanumDrive;
 import org.jetbrains.annotations.NotNull;
 
 // https://learnroadrunner.com/advanced.html#using-road-runner-in-teleop if roadrunner needed
 @TeleOp(name = Constants.TELEOP_NAME)
 public final class LancersTeleOp extends LinearOpMode {
-    final static float TRIGGER_THRESHOLD = 0.15f;
-    final static float STICK_THRESHOLD = 0.1f;
     // Loop Tasks
 
     /**
@@ -31,10 +30,10 @@ public final class LancersTeleOp extends LinearOpMode {
         final @NotNull DcMotor rightRear = hardwareMap.dcMotor.get(LancersBotConfig.RIGHT_REAR_MOTOR);
 
         // Gamepad positions
-        final double ly = -gamepad.left_stick_y; // Remember, Y stick value is reversed
-        final double lx = gamepad.left_stick_x * 1.1; // Counteract imperfect strafing
+        final double ly = -ControlUtil.adjustStickMovement(gamepad.left_stick_y); // Remember, Y stick value is reversed
+        final double lx = ControlUtil.adjustStickMovement(gamepad.left_stick_x); // Counteract imperfect strafing
 
-        final double rx = gamepad.right_stick_x;
+        final double rx = ControlUtil.adjustStickMovement(gamepad.right_stick_x);
 
         // Denominator is the largest motor power (absolute value) or 1
         // This ensures all the powers maintain the same ratio,
@@ -55,37 +54,49 @@ public final class LancersTeleOp extends LinearOpMode {
     public void intakeMovement(final @NotNull Gamepad gamepad) {
         final @NotNull DcMotor intakeMotor = hardwareMap.dcMotor.get(LancersBotConfig.INTAKE_MOTOR);
 
-        if (gamepad.right_trigger > TRIGGER_THRESHOLD) {
-            intakeMotor.setPower(gamepad.right_trigger);
-        } else if (gamepad.left_trigger > TRIGGER_THRESHOLD) {
+        if (gamepad.right_trigger > ControlUtil.TRIGGER_THRESHOLD) {
+            intakeMotor.setPower(ControlUtil.adjustTriggerMovement(gamepad.right_trigger));
+        } else if (gamepad.left_trigger > ControlUtil.TRIGGER_THRESHOLD) {
             // for placing pixels forward (mainly redundant code from auton)
             // divided by 2 to give finer control than SUCKING IN pixels
-            intakeMotor.setPower(-gamepad.left_trigger / 2.0d);
+            intakeMotor.setPower(-ControlUtil.adjustTriggerMovement(gamepad.left_trigger) / 2.0d);
         } else {
             intakeMotor.setPower(0.0d);
         }
     }
 
+    public static final double MAX_SINGLE_SLIDER_SPEED = 0.3d;
+    public static final double MAX_SLIDER_SPEED = 0.6d;
+
     public void sliderMovement(final @NotNull Gamepad gamepad) {
-        // Left stick y
+        // right trigger: expand
+        // left trigger: contract
+
+        // if left bumper is pressed, move only left slider and do so at 0.3 speed
+        // if right bumper is pressed, move only right slider and do so at 0.3 speed
+
         final @NotNull DcMotor leftSlider = hardwareMap.dcMotor.get(LancersBotConfig.LEFT_SLIDE_MOTOR);
         final @NotNull DcMotor rightSlider = hardwareMap.dcMotor.get(LancersBotConfig.RIGHT_SLIDE_MOTOR);
 
-        // Left slider moves clockwise to expand
-        // Right slider moves counterclockwise to expand
-
-        // Left slider moves counterclockwise to contract
-        // Right slider moves clockwise to contract
-
-        float sliderPower = -gamepad.left_stick_y * 0.5f; // Indirectly limit maximum speed
-
-        // Setup deadzone so sliders brake
-        if (Math.abs(sliderPower) < STICK_THRESHOLD) {
-            sliderPower = 0.0f;
+        double sliderPower = 0.0d;
+        if (gamepad.right_trigger > ControlUtil.TRIGGER_THRESHOLD) {
+            sliderPower = ControlUtil.adjustTriggerMovement(gamepad.right_trigger);
+        } else if (gamepad.left_trigger > ControlUtil.TRIGGER_THRESHOLD) {
+            sliderPower = -ControlUtil.adjustTriggerMovement(gamepad.left_trigger);
+        } else {
+            sliderPower = 0.0d; // brake sliders
         }
 
-        final float leftSliderPower = sliderPower;
-        final float rightSliderPower = -sliderPower;
+        double leftSliderPower = sliderPower * MAX_SLIDER_SPEED;
+        double rightSliderPower = -leftSliderPower;
+
+        if (gamepad.right_bumper) {
+            leftSliderPower = 0.0d;
+            rightSliderPower = sliderPower * MAX_SINGLE_SLIDER_SPEED;
+        } else if (gamepad.left_bumper) {
+            leftSliderPower = sliderPower * MAX_SINGLE_SLIDER_SPEED;
+            rightSliderPower = 0.0d;
+        }
 
         leftSlider.setPower(leftSliderPower);
         rightSlider.setPower(rightSliderPower);
@@ -169,10 +180,9 @@ public final class LancersTeleOp extends LinearOpMode {
 
                 // Gamepad 1 / Movement
                 mecanumMovement(gamepad1);
-                // rigging (when ready)
+                intakeMovement(gamepad1);
 
                 // Gamepad 2
-                intakeMovement(gamepad2);
                 sliderMovement(gamepad2);
                 outtakeLinearMovement(gamepad2);
                 outtakeAngularMovement(gamepad2);
