@@ -131,7 +131,7 @@ public final class LancersTeleOp extends LinearOpMode {
     }
 
     public void outtakeAngularMovement(final @NotNull Gamepad gamepad) {
-        // Right stick x
+        // Left stick y
         // Setup button to set servos to a special angle
         final @NotNull Servo leftOuttake = hardwareMap.servo.get(LancersBotConfig.LEFT_OUTTAKE_SERVO);
         final @NotNull Servo rightOuttake = hardwareMap.servo.get(LancersBotConfig.RIGHT_OUTTAKE_SERVO);
@@ -146,7 +146,7 @@ public final class LancersTeleOp extends LinearOpMode {
             rightOuttake.setPosition(RIGHT_SERVO_VERTICAL_POSITION);
         } else {
             final double currentLeftPos = leftOuttake.getPosition();
-            double targetLeftPos = currentLeftPos + (gamepad.right_stick_x * 0.005d);
+            double targetLeftPos = currentLeftPos + (gamepad.left_stick_y * 0.005d);
 
             // Make sure targetLeftPos is in range for servo
             if (targetLeftPos > 0.9d) {
