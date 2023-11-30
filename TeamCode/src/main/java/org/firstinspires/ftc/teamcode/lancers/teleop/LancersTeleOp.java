@@ -25,16 +25,19 @@ public final class LancersTeleOp extends LinearOpMode {
      * @author Alex Zhang
      */
     private void mecanumMovement(final @NotNull Gamepad gamepad) {
+        // Holding "A" will make the bot move faster
+
+        final double speedMultiplier = gamepad.a ? 1.0d : 0.8d;
+
         final @NotNull DcMotor leftFront = hardwareMap.dcMotor.get(LancersBotConfig.LEFT_FRONT_MOTOR);
         final @NotNull DcMotor leftRear = hardwareMap.dcMotor.get(LancersBotConfig.LEFT_REAR_MOTOR);
         final @NotNull DcMotor rightFront = hardwareMap.dcMotor.get(LancersBotConfig.RIGHT_FRONT_MOTOR);
         final @NotNull DcMotor rightRear = hardwareMap.dcMotor.get(LancersBotConfig.RIGHT_REAR_MOTOR);
 
         // Gamepad positions
-        final double ly = -ControlUtil.adjustStickMovement(gamepad.left_stick_y); // Remember, Y stick value is reversed
-        final double lx = ControlUtil.adjustStickMovement(gamepad.left_stick_x); // Counteract imperfect strafing
-
-        final double rx = ControlUtil.adjustStickMovement(gamepad.right_stick_x);
+        final double ly = -ControlUtil.adjustStickMovement(gamepad.left_stick_y) * speedMultiplier; // Remember, Y stick value is reversed
+        final double lx = ControlUtil.adjustStickMovement(gamepad.left_stick_x) * speedMultiplier; // Counteract imperfect strafing
+        final double rx = ControlUtil.adjustStickMovement(gamepad.right_stick_x) * speedMultiplier;
 
         // Denominator is the largest motor power (absolute value) or 1
         // This ensures all the powers maintain the same ratio,
