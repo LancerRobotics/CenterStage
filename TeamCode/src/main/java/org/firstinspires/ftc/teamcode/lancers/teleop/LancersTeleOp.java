@@ -72,6 +72,7 @@ public final class LancersTeleOp extends LinearOpMode {
     public static final double MAX_SINGLE_SLIDER_SPEED = 0.3d;
     public static final double MAX_SLIDER_SPEED = 0.6d;
 
+    // TODO: Eventually break this out to it's own class along with intake & outtake for sharing code between auton and teleop
     public void sliderMovement(final @NotNull Gamepad gamepad) {
         // right trigger: expand
         // left trigger: contract
@@ -106,6 +107,7 @@ public final class LancersTeleOp extends LinearOpMode {
         rightSlider.setPower(rightSliderPower);
     }
 
+    // TODO: move
     public void outtakeLinearMovement(final @NotNull Gamepad gamepad) {
         // Right stick y
         final @NotNull CRServo backOuttake = hardwareMap.crservo.get(LancersBotConfig.BACK_OUTTAKE_SERVO);
@@ -123,6 +125,7 @@ public final class LancersTeleOp extends LinearOpMode {
     private static final double RIGHT_SERVO_HORIZONTAL_POSITION = 1.0d - LEFT_SERVO_HORIZONTAL_POSITION;
     private static final double RIGHT_SERVO_VERTICAL_POSITION = 1.0d - LEFT_SERVO_VERTICAL_POSITION;
 
+    // TODO: move
     public void initOuttakeBasket() {
         final @NotNull Servo leftOuttake = hardwareMap.servo.get(LancersBotConfig.LEFT_OUTTAKE_SERVO);
         final @NotNull Servo rightOuttake = hardwareMap.servo.get(LancersBotConfig.RIGHT_OUTTAKE_SERVO);
@@ -130,6 +133,7 @@ public final class LancersTeleOp extends LinearOpMode {
         rightOuttake.setPosition(RIGHT_SERVO_HORIZONTAL_POSITION);
     }
 
+    // TODO: move
     public void outtakeAngularMovement(final @NotNull Gamepad gamepad) {
         // Left stick y
         // Setup button to set servos to a special angle
@@ -169,7 +173,8 @@ public final class LancersTeleOp extends LinearOpMode {
         // https://github.com/NoahBres/road-runner-quickstart/blob/advanced-examples/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/drive/advanced/TeleOpJustLocalizer.java#L69
 
         // NOTE: If an auton didn't run or if the global state in the drive persisted, the pose data may be incorrect.
-        //       This can be fixed by running an auton that requires the bot be in a specific starting positon.
+        //       This can be fixed by running an auton that requires the bot be in a specific starting positon
+        //       (e.g. one of the parking autons or the full auton) (this only matters for launching the drone)
         try (final LancersMecanumDrive drive = new LancersMecanumDrive(hardwareMap)) {
             LancersBotConfig.configureMotors(hardwareMap);
             OpModeUtil.initMultipleTelemetry(this);
