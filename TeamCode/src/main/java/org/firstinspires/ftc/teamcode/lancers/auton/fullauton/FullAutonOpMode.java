@@ -1,18 +1,23 @@
 package org.firstinspires.ftc.teamcode.lancers.auton.fullauton;
 
+import android.graphics.Canvas;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
+import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
 import org.firstinspires.ftc.teamcode.lancers.LancersBotConfig;
 import org.firstinspires.ftc.teamcode.lancers.auton.StartPosition;
+import org.firstinspires.ftc.teamcode.lancers.auton.TeamScoringElementLocation;
 import org.firstinspires.ftc.teamcode.lancers.util.LancersMecanumDrive;
 import org.firstinspires.ftc.teamcode.lancers.util.OpModeUtil;
 import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.VisionProcessor;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.tfod.TfodProcessor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.opencv.core.Mat;
 
 import java.util.List;
 import java.util.Objects;
@@ -21,20 +26,19 @@ import java.util.Objects;
  * Holds common code shared between different auton modes.
  * Implements {@link org.firstinspires.ftc.robotcontroller.external.samples.ConceptDoubleVision} & uses {@link LancersMecanumDrive}
  */
-// Previously contained OpenCV Code from tutorial https://www.youtube.com/watch?v=547ZUZiYfQE&t=37s
 public class FullAutonOpMode extends LinearOpMode {
-    private final @NotNull StartPosition startMode;
+    private final @NotNull StartPosition startPosition;
 
-    public FullAutonOpMode(final @NotNull StartPosition startMode) {
+    public FullAutonOpMode(final @NotNull StartPosition startPosition) {
         super();
-        this.startMode = startMode;
+        this.startPosition = startPosition;
     }
 
     private @Nullable LancersMecanumDrive drive = null;
 
     private void initDrive() {
         drive = new LancersMecanumDrive(hardwareMap);
-        drive.setPoseEstimate(startMode.getStartPose());
+        drive.setPoseEstimate(startPosition.getStartPose());
     }
 
     // Computer vision processors & initialization
@@ -84,14 +88,61 @@ public class FullAutonOpMode extends LinearOpMode {
 
             .build();
 
-    // Portal
+    private class BasicTeamScoringElementRecognizingProcessor implements VisionProcessor { // aka the pipeline
+        // adaptation of old https://github.com/LancerRobotics/CenterStage/blob/16e9bbfd05611b5ae0403141e7f121bac8492ac2/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/opmode/OpenCV.java
+        // Previously contained OpenCV Code from tutorial https://www.youtube.com/watch?v=547ZUZiYfQE&t=37s
+
+        // probably will be the right size, but will be changed when initialized
+        int width = 640;
+        int height = 480;
+
+        final @NotNull Object lock = new Object();
+
+        private @Nullable TeamScoringElementLocation teamScoringElementLocation = null;
+
+        @Override
+        public void init(int width, int height, CameraCalibration calibration) {
+            // Will only be called once
+            this.width = width;
+            this.height = height;
+        }
+
+        @Override
+        public Object processFrame(Mat frame, long captureTimeNanos) {
+            if (teamScoringElementLocation != null) {
+                return teamScoringElementLocation; // we already know where the TSE is, no need to process
+            }
+            synchronized (lock) {
+                startPosition.getAllianceColor().getScalar(); // TODO: find third of screen with this color
+                // copy code from https://github.com/LancerRobotics/CenterStage/blob/16e9bbfd05611b5ae0403141e7f121bac8492ac2/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/opmode/OpenCV.java#L65
+                return null; // object returned will be passed to onDrawFrame
+            }
+        }
+
+        @Override
+        public void onDrawFrame(Canvas canvas, int onscreenWidth, int onscreenHeight, float scaleBmpPxToCanvasPx, float scaleCanvasDensity, Object userContext) {
+            final @Nullable TeamScoringElementLocation location = (TeamScoringElementLocation) userContext; // may be null
+            synchronized (lock) {
+                // TODO: Annotate canvas with info from processFrame, just boxes
+
+                // TODO: if the location isn't null, draw some text that says "TSE HERE!" or something
+            }
+        }
+
+        public @Nullable TeamScoringElementLocation getTeamScoringElementLocation() {
+            return TeamScoringElementLocation.CENTER;
+        }
+    }
+
+    private final @NotNull BasicTeamScoringElementRecognizingProcessor tseProcessor = new BasicTeamScoringElementRecognizingProcessor();
+
     private @Nullable VisionPortal visionPortal = null;
 
     private void initVision() {
         final @NotNull WebcamName webcam = hardwareMap.get(WebcamName.class, LancersBotConfig.WEBCAM);
 
         visionPortal = new VisionPortal.Builder()
-                .addProcessors(aprilTag, tfod)
+                .addProcessors(aprilTag, tfod, tseProcessor)
                 .setCamera(webcam)
 
                 // Choose a camera resolution. Not all cameras support all resolutions.
@@ -106,9 +157,13 @@ public class FullAutonOpMode extends LinearOpMode {
                 // Choose whether or not LiveView stops if no processors are enabled.
                 // If set "true", monitor shows solid orange screen if no processors enabled.
                 // If set "false", monitor shows camera view without annotations.
-                //.setAutoStopLiveView(false)
+                .setAutoStopLiveView(true)
 
                 .build();
+
+        visionPortal.setProcessorEnabled(aprilTag, false); // shining is right; we don't need this (yet)
+        visionPortal.setProcessorEnabled(tfod, false); // tfod & aprilTag can be enabled as we need them, don't strip out unused code
+        visionPortal.setProcessorEnabled(tseProcessor, true); // suitable for comp #1
     }
 
     // Runtime code
@@ -125,7 +180,6 @@ public class FullAutonOpMode extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        // Don't use the autoclosable part of the lancermechanumdrive
         initDrive();
         initVision();
         OpModeUtil.initMultipleTelemetry(this);
@@ -133,72 +187,29 @@ public class FullAutonOpMode extends LinearOpMode {
         waitForStart();
 
         while (!isStopRequested()) {
+            idle(); // thread will yield whenever continue is called (0 second sleep)
             Objects.requireNonNull(drive).update();
-            telemetryAprilTag();
-            telemetryTfod();
             telemetry.update();
 
             // See auton psuedocode https://docs.google.com/document/d/1lLHZNmnYf7C67mSHjxOZpvPCSCouX_pffa1dQ7LE-PQ/edit
             // We can disable/enable proccessors as needed to save CPU cycles
 
-            // Startup code
-            // TODO: detect position of TSE
+            // first actions in auton (first 10 seconds)
+            if (tseProcessor.getTeamScoringElementLocation() == null) {
+                continue; // don't move from starting position until we know where the TSE is
+            } else {
+                visionPortal.setProcessorEnabled(tseProcessor, false); // done using, save cycles
+            }
             // TODO: Place purple pixel on TSE spike strip
-            // TODO: Place pixel on TSE spike strip backboard
+            // TODO: Place yellow pixel on backboard according to TSE location
 
-            // Main loop code
-            // TODO: Build mosiacs?
+            // for remainder of time until time to park
+            // TODO: 3 points for backstage pixels 5 for backboard pixels, just white ones from stacks
 
-            // Finalizing code (parking)
-            // TODO: Park in backstage NOT colliding with another bot
-
-            idle();
+            // TODO: Park in backstage then break loop
+            // auton period is 30 seconds, start parking at 20 seconds?
         }
 
-        cleanup();
+        cleanup(); // no need to autoclose the drive nor vision, easier w/ 2 objects
     }
-
-    /**
-     * Add telemetry about AprilTag detections.
-     * Source: {@link org.firstinspires.ftc.robotcontroller.external.samples.ConceptDoubleVision}
-     */
-    private void telemetryAprilTag() {
-        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-        telemetry.addData("# AprilTags Detected", currentDetections.size());
-
-        // Step through the list of detections and display info for each one.
-        for (AprilTagDetection detection : currentDetections) {
-            if (detection.metadata != null) {
-                telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
-                telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
-                telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
-                telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
-            } else {
-                telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
-                telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
-            }
-        }   // end for() loop
-
-    }   // end method telemetryAprilTag()
-
-    /**
-     * Add telemetry about TensorFlow Object Detection (TFOD) recognitions.
-     * Source: {@link org.firstinspires.ftc.robotcontroller.external.samples.ConceptDoubleVision}
-     */
-    private void telemetryTfod() {
-        List<Recognition> currentRecognitions = tfod.getRecognitions();
-        telemetry.addData("# Objects Detected", currentRecognitions.size());
-
-        // Step through the list of recognitions and display info for each one.
-        for (Recognition recognition : currentRecognitions) {
-            double x = (recognition.getLeft() + recognition.getRight()) / 2;
-            double y = (recognition.getTop() + recognition.getBottom()) / 2;
-
-            telemetry.addData("", " ");
-            telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100);
-            telemetry.addData("- Position", "%.0f / %.0f", x, y);
-            telemetry.addData("- Size", "%.0f x %.0f", recognition.getWidth(), recognition.getHeight());
-        }   // end for() loop
-
-    }   // end method telemetryTfod()
 }
