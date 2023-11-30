@@ -1,40 +1,29 @@
 package org.firstinspires.ftc.teamcode.lancers.auton.fullauton;
 
-import android.graphics.Canvas;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
-import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
 import org.firstinspires.ftc.teamcode.lancers.LancersBotConfig;
+import org.firstinspires.ftc.teamcode.lancers.auton.LancersAutonOpMode;
 import org.firstinspires.ftc.teamcode.lancers.auton.StartPosition;
-import org.firstinspires.ftc.teamcode.lancers.auton.TeamScoringElementLocation;
 import org.firstinspires.ftc.teamcode.lancers.util.LancersMecanumDrive;
 import org.firstinspires.ftc.teamcode.lancers.util.OpModeUtil;
 import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.VisionProcessor;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.tfod.TfodProcessor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.opencv.core.Mat;
 
-import java.util.List;
 import java.util.Objects;
 
 /**
  * Holds common code shared between different auton modes.
  * Implements {@link org.firstinspires.ftc.robotcontroller.external.samples.ConceptDoubleVision} & uses {@link LancersMecanumDrive}
  */
-public class FullAutonOpMode extends LinearOpMode {
-    private final @NotNull StartPosition startPosition;
-
-    public FullAutonOpMode(final @NotNull StartPosition startPosition) {
-        super();
-        this.startPosition = startPosition;
-    }
-
+public class FullAutonOpMode extends LancersAutonOpMode {
     private @Nullable LancersMecanumDrive drive = null;
+
+    public FullAutonOpMode(@NotNull StartPosition startPosition) {
+        super(startPosition);
+    }
 
     private void initDrive() {
         drive = new LancersMecanumDrive(hardwareMap);
@@ -88,53 +77,7 @@ public class FullAutonOpMode extends LinearOpMode {
 
             .build();
 
-    private class BasicTeamScoringElementRecognizingProcessor implements VisionProcessor { // aka the pipeline
-        // adaptation of old https://github.com/LancerRobotics/CenterStage/blob/16e9bbfd05611b5ae0403141e7f121bac8492ac2/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/opmode/OpenCV.java
-        // Previously contained OpenCV Code from tutorial https://www.youtube.com/watch?v=547ZUZiYfQE&t=37s
-
-        // probably will be the right size, but will be changed when initialized
-        int width = 640;
-        int height = 480;
-
-        final @NotNull Object lock = new Object();
-
-        private @Nullable TeamScoringElementLocation teamScoringElementLocation = null;
-
-        @Override
-        public void init(int width, int height, CameraCalibration calibration) {
-            // Will only be called once
-            this.width = width;
-            this.height = height;
-        }
-
-        @Override
-        public Object processFrame(Mat frame, long captureTimeNanos) {
-            if (teamScoringElementLocation != null) {
-                return teamScoringElementLocation; // we already know where the TSE is, no need to process
-            }
-            synchronized (lock) {
-                startPosition.getAllianceColor().getScalar(); // TODO: find third of screen with this color
-                // copy code from https://github.com/LancerRobotics/CenterStage/blob/16e9bbfd05611b5ae0403141e7f121bac8492ac2/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/opmode/OpenCV.java#L65
-                return null; // object returned will be passed to onDrawFrame
-            }
-        }
-
-        @Override
-        public void onDrawFrame(Canvas canvas, int onscreenWidth, int onscreenHeight, float scaleBmpPxToCanvasPx, float scaleCanvasDensity, Object userContext) {
-            final @Nullable TeamScoringElementLocation location = (TeamScoringElementLocation) userContext; // may be null
-            synchronized (lock) {
-                // TODO: Annotate canvas with info from processFrame, just boxes
-
-                // TODO: if the location isn't null, draw some text that says "TSE HERE!" or something
-            }
-        }
-
-        public @Nullable TeamScoringElementLocation getTeamScoringElementLocation() {
-            return TeamScoringElementLocation.CENTER;
-        }
-    }
-
-    private final @NotNull BasicTeamScoringElementRecognizingProcessor tseProcessor = new BasicTeamScoringElementRecognizingProcessor();
+    private final @NotNull BasicTeamScoringElementRecognizingProcessor tseProcessor = new BasicTeamScoringElementRecognizingProcessor(this);
 
     private @Nullable VisionPortal visionPortal = null;
 

@@ -1,18 +1,15 @@
 package org.firstinspires.ftc.teamcode.lancers.auton.parkingauton;
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import org.firstinspires.ftc.teamcode.lancers.auton.LancersAutonOpMode;
 import org.firstinspires.ftc.teamcode.lancers.auton.StartPosition;
 import org.firstinspires.ftc.teamcode.lancers.util.LancersMecanumDrive;
 import org.firstinspires.ftc.teamcode.lancers.util.OpModeUtil;
-import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
+import org.firstinspires.ftc.teamcode.rr.trajectorysequence.TrajectorySequence;
 import org.jetbrains.annotations.NotNull;
 
-public class ParkingAutonOpMode extends LinearOpMode {
-    private final @NotNull StartPosition startPosition;
-
-    public ParkingAutonOpMode(final @NotNull StartPosition startPosition) {
-        super();
-        this.startPosition = startPosition;
+public class ParkingAutonOpMode extends LancersAutonOpMode {
+    public ParkingAutonOpMode(@NotNull StartPosition startPosition) {
+        super(startPosition);
     }
 
     @Override
