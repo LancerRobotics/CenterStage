@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.lancers.LancersBotConfig;
 import org.firstinspires.ftc.teamcode.lancers.util.Constants;
 import org.firstinspires.ftc.teamcode.lancers.util.ControlUtil;
 import org.firstinspires.ftc.teamcode.lancers.util.LancersMecanumDrive;
+import org.firstinspires.ftc.teamcode.lancers.util.OpModeUtil;
 import org.jetbrains.annotations.NotNull;
 
 // https://learnroadrunner.com/advanced.html#using-road-runner-in-teleop if roadrunner needed
@@ -168,6 +169,7 @@ public final class LancersTeleOp extends LinearOpMode {
         //       This can be fixed by running an auton that requires the bot be in a specific starting positon.
         try (final LancersMecanumDrive drive = new LancersMecanumDrive(hardwareMap)) {
             LancersBotConfig.configureMotors(hardwareMap);
+            OpModeUtil.initMultipleTelemetry(this);
             initOuttakeBasket();
 
             waitForStart();
