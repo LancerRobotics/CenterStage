@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.lancers.util;
 import com.acmerobotics.roadrunner.drive.MecanumDrive;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.rr.drive.SampleMecanumDrive;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,14 +21,6 @@ public class LancersMecanumDrive extends SampleMecanumDrive implements AutoClose
     public void update() {
         super.update();
         PoseStorage.updateStoredPose(this);
-    }
-
-    public void addTelemetry(final @NotNull Telemetry telemetry) {
-        final @NotNull Pose2d currentPose = getPoseEstimate();
-
-        telemetry.addData("x", currentPose.getX());
-        telemetry.addData("y", currentPose.getY());
-        telemetry.addData("heading", currentPose.getHeading());
     }
 
     @Override

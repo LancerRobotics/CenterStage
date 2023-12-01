@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.lancers.teleop;
 
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -8,13 +9,12 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.lancers.config.Constants;
 import org.firstinspires.ftc.teamcode.lancers.config.LancersBotConfig;
 import org.firstinspires.ftc.teamcode.lancers.util.ControlUtil;
-import org.firstinspires.ftc.teamcode.lancers.util.LancersLinearOpMode;
 import org.firstinspires.ftc.teamcode.lancers.util.LancersMecanumDrive;
 import org.jetbrains.annotations.NotNull;
 
 // https://learnroadrunner.com/advanced.html#using-road-runner-in-teleop if roadrunner needed
 @TeleOp(name = Constants.TELEOP_NAME)
-public final class LancersTeleOp extends LancersLinearOpMode {
+public final class LancersTeleOp extends LinearOpMode {
     // Loop Tasks
 
     /**
@@ -182,8 +182,11 @@ public final class LancersTeleOp extends LancersLinearOpMode {
             if (isStopRequested()) return;
 
             while (opModeIsActive()) {
-                drive.update();
-                drive.addTelemetry(telemetry);
+                drive.update(); // sends trajectory data to dashboard
+
+                telemetry.addData("x", drive.getPoseEstimate().getX());
+                telemetry.addData("y", drive.getPoseEstimate().getY());
+                telemetry.addData("heading (deg)", Math.toDegrees(drive.getPoseEstimate().getHeading()));
 
                 // Gamepad 1 / Movement
                 mecanumMovement(gamepad1);

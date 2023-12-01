@@ -48,9 +48,9 @@ class BasicTeamScoringElementRecognizingProcessor implements VisionProcessor { /
             final @NotNull Mat centerMat = frame.submat(centerRect);
             final @NotNull Mat rightMat = frame.submat(rightRect);
 
-            final @NotNull Mat centerColorMap = new Mat();
-            final @NotNull Mat rightColorMap = new Mat();
-            final @NotNull Mat leftColorMap = new Mat();
+            final @NotNull Mat centerColorMat = new Mat();
+            final @NotNull Mat rightColorMat = new Mat();
+            final @NotNull Mat leftColorMat = new Mat();
 
             opMode.startPosition.getAllianceColor().getScalar(); // TODO: find third of screen with this color
             // copy code from https://github.com/LancerRobotics/CenterStage/blob/16e9bbfd05611b5ae0403141e7f121bac8492ac2/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/opmode/OpenCV.java#L65

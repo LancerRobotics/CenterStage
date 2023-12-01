@@ -145,7 +145,7 @@ public class FullAutonOpMode extends LancersAutonOpMode {
             // TODO: Place purple pixel on TSE spike strip
             // TODO: Place yellow pixel on backboard according to TSE location
 
-            // for remainder of time until time to park
+            // cycling: for remainder of time until time to park
             // TODO: 3 points for backstage pixels 5 for backboard pixels, just white ones from stacks
 
             // TODO: Park in backstage then break loop
