@@ -1,11 +1,10 @@
 package org.firstinspires.ftc.teamcode.lancers.auton.fullauton;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.teamcode.lancers.LancersBotConfig;
 import org.firstinspires.ftc.teamcode.lancers.auton.LancersAutonOpMode;
 import org.firstinspires.ftc.teamcode.lancers.auton.StartPosition;
+import org.firstinspires.ftc.teamcode.lancers.config.LancersBotConfig;
 import org.firstinspires.ftc.teamcode.lancers.util.LancersMecanumDrive;
-import org.firstinspires.ftc.teamcode.lancers.util.OpModeUtil;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.tfod.TfodProcessor;
@@ -125,13 +124,13 @@ public class FullAutonOpMode extends LancersAutonOpMode {
     public void runOpMode() throws InterruptedException {
         initDrive();
         initVision();
-        OpModeUtil.initMultipleTelemetry(this);
 
         waitForStart();
 
         while (!isStopRequested()) {
             idle(); // thread will yield whenever continue is called (0 second sleep)
             Objects.requireNonNull(drive).update();
+            Objects.requireNonNull(visionPortal); // for type hinting
             telemetry.update();
 
             // See auton psuedocode https://docs.google.com/document/d/1lLHZNmnYf7C67mSHjxOZpvPCSCouX_pffa1dQ7LE-PQ/edit

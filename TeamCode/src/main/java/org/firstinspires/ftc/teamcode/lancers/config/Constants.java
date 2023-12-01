@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.lancers.util;
+package org.firstinspires.ftc.teamcode.lancers.config;
 
 import org.jetbrains.annotations.NotNull;
 

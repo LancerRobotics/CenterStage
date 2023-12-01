@@ -16,7 +16,7 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.lancers.LancersBotConfig;
+import org.firstinspires.ftc.teamcode.lancers.config.LancersBotConfig;
 import org.firstinspires.ftc.teamcode.rr.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.teamcode.rr.trajectorysequence.TrajectorySequenceBuilder;
 import org.firstinspires.ftc.teamcode.rr.trajectorysequence.TrajectorySequenceRunner;

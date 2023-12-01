@@ -1,21 +1,20 @@
 package org.firstinspires.ftc.teamcode.lancers.teleop;
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
-import org.firstinspires.ftc.teamcode.lancers.LancersBotConfig;
-import org.firstinspires.ftc.teamcode.lancers.util.Constants;
+import org.firstinspires.ftc.teamcode.lancers.config.Constants;
+import org.firstinspires.ftc.teamcode.lancers.config.LancersBotConfig;
 import org.firstinspires.ftc.teamcode.lancers.util.ControlUtil;
+import org.firstinspires.ftc.teamcode.lancers.util.LancersLinearOpMode;
 import org.firstinspires.ftc.teamcode.lancers.util.LancersMecanumDrive;
-import org.firstinspires.ftc.teamcode.lancers.util.OpModeUtil;
 import org.jetbrains.annotations.NotNull;
 
 // https://learnroadrunner.com/advanced.html#using-road-runner-in-teleop if roadrunner needed
 @TeleOp(name = Constants.TELEOP_NAME)
-public final class LancersTeleOp extends LinearOpMode {
+public final class LancersTeleOp extends LancersLinearOpMode {
     // Loop Tasks
 
     /**
@@ -176,8 +175,6 @@ public final class LancersTeleOp extends LinearOpMode {
         //       This can be fixed by running an auton that requires the bot be in a specific starting positon
         //       (e.g. one of the parking autons or the full auton) (this only matters for launching the drone)
         try (final LancersMecanumDrive drive = new LancersMecanumDrive(hardwareMap)) {
-            LancersBotConfig.configureMotors(hardwareMap);
-            OpModeUtil.initMultipleTelemetry(this);
             initOuttakeBasket();
 
             waitForStart();

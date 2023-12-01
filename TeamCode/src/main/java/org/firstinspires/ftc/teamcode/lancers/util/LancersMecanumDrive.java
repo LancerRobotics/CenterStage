@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
  * A wrapper around {@link SampleMecanumDrive} that allows for telemetry to be added to the driver station and
  * for state data to be persisted between opmodes.
  */
-public final class LancersMecanumDrive extends SampleMecanumDrive implements AutoCloseable {
+public class LancersMecanumDrive extends SampleMecanumDrive implements AutoCloseable {
     public LancersMecanumDrive(final @NotNull HardwareMap hardwareMap) {
         super(hardwareMap);
         PoseStorage.restoreStoredPose(this);
