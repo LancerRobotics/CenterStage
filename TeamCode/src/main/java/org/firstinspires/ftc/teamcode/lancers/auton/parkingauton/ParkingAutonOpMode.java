@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.lancers.auton.parkingauton;
 
+import org.firstinspires.ftc.teamcode.lancers.auton.AllianceColor;
 import org.firstinspires.ftc.teamcode.lancers.auton.LancersAutonOpMode;
 import org.firstinspires.ftc.teamcode.lancers.auton.StartPosition;
 import org.firstinspires.ftc.teamcode.lancers.util.LancersMecanumDrive;
@@ -18,6 +19,7 @@ public class ParkingAutonOpMode extends LancersAutonOpMode {
 
             TrajectorySequence trajectorySequence = drive.trajectorySequenceBuilder(startPosition.getStartPose())
                     .lineTo(startPosition.getSafeMovementPose().vec()) // TODO: do better
+                    .turn(Math.toRadians(startPosition.getAllianceColor() == AllianceColor.RED ? -90 : 90)) // turn towards backboard
                     .lineTo(startPosition.getAllianceColor().getBackstageParkingSpot())
                     .build();
 
