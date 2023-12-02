@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.lancers.auton.parkingauton;
 import org.firstinspires.ftc.teamcode.lancers.auton.LancersAutonOpMode;
 import org.firstinspires.ftc.teamcode.lancers.auton.StartPosition;
 import org.firstinspires.ftc.teamcode.lancers.util.LancersMecanumDrive;
-import org.firstinspires.ftc.teamcode.rr.trajectorysequence.TrajectorySequence;
+import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 import org.jetbrains.annotations.NotNull;
 
 public class ParkingAutonOpMode extends LancersAutonOpMode {
