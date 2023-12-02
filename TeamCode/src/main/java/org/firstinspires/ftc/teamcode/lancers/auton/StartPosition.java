@@ -14,15 +14,25 @@ public enum StartPosition {
     public @NotNull Pose2d getStartPose() {
         switch (this) {
             case RED_BACK_STAGE:
-                return new Pose2d(11.37, -60, Math.toRadians(90));
+                return new Pose2d(11.37, -62, Math.toRadians(90));
             case RED_FRONT_STAGE:
-                return new Pose2d(-37.46, -60, Math.toRadians(90));
+                return new Pose2d(-37.46, -62, Math.toRadians(90));
             case BLUE_BACK_STAGE:
-                return new Pose2d(11.37, 60, Math.toRadians(-90));
+                return new Pose2d(11.37, 62, Math.toRadians(-90));
             case BLUE_FRONT_STAGE:
             default: // already exhaustive
-                return new Pose2d(-37.46, 60, Math.toRadians(-90));
+                return new Pose2d(-37.46, 62, Math.toRadians(-90));
         }
+    }
+
+    /**
+     * Slightly in front of startPose
+     *
+     * @return
+     */
+    public @NotNull Pose2d getSafeMovementPose() {
+        final @NotNull Pose2d startPose = getStartPose();
+        return new Pose2d(startPose.getX(), startPose.getY() * (60d / 62), startPose.getHeading());
     }
 
     public @NotNull AllianceColor getAllianceColor() {

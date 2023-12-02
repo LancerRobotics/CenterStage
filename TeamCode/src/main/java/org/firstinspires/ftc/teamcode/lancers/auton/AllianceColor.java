@@ -21,10 +21,10 @@ public enum AllianceColor {
     public @NotNull Vector2d getBackstageParkingSpot() {
         switch (this) {
             case BLUE:
-                return new Vector2d(60.95, 60.04);
+                return new Vector2d(60.95, 62);
             case RED:
             default: // already exhaustive
-                return new Vector2d(60.95, -60.04);
+                return new Vector2d(60.95, -62);
         }
     }
 

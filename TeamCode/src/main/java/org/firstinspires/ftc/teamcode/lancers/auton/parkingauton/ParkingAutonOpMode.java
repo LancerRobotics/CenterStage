@@ -17,6 +17,7 @@ public class ParkingAutonOpMode extends LancersAutonOpMode {
             drive.setPoseEstimate(startPosition.getStartPose());
 
             TrajectorySequence trajectorySequence = drive.trajectorySequenceBuilder(startPosition.getStartPose())
+                    .lineTo(startPosition.getSafeMovementPose().vec()) // TODO: do better
                     .lineTo(startPosition.getAllianceColor().getBackstageParkingSpot())
                     .build();
 
