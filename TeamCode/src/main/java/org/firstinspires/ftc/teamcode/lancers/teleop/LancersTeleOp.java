@@ -57,10 +57,12 @@ public final class LancersTeleOp extends LinearOpMode {
     public void intakeMovement(final @NotNull Gamepad gamepad) {
         final @NotNull DcMotor intakeMotor = hardwareMap.dcMotor.get(LancersBotConfig.INTAKE_MOTOR);
 
+        final double speedMultiplier = gamepad.b ? 1.0 : 0.8;
+
         if (gamepad.right_trigger > ControlUtil.TRIGGER_THRESHOLD) {
-            intakeMotor.setPower(ControlUtil.adjustTriggerMovement(gamepad.right_trigger));
+            intakeMotor.setPower(ControlUtil.adjustTriggerMovement(gamepad.right_trigger) * speedMultiplier);
         } else if (gamepad.left_trigger > ControlUtil.TRIGGER_THRESHOLD) {
-            // for placing pixels forward (mainly redundant code from auton)
+            // for placing pixels forward/unsticking
             // divided by 2 to give finer control than SUCKING IN pixels
             intakeMotor.setPower(-ControlUtil.adjustTriggerMovement(gamepad.left_trigger) / 2.0d);
         } else {
@@ -68,10 +70,11 @@ public final class LancersTeleOp extends LinearOpMode {
         }
     }
 
-    public static final double MAX_SINGLE_SLIDER_SPEED = 0.3d;
-    public static final double MAX_SLIDER_SPEED = 0.6d;
+    private static final double MAX_SINGLE_SLIDER_SPEED = 0.3d;
+    private static final double MAX_SLIDER_SPEED = 0.6d;
 
     // TODO: Eventually break this out to it's own class along with intake & outtake for sharing code between auton and teleop
+    // see ek's subsystems
     public void sliderMovement(final @NotNull Gamepad gamepad) {
         // right trigger: expand
         // left trigger: contract
@@ -87,8 +90,6 @@ public final class LancersTeleOp extends LinearOpMode {
             sliderPower = ControlUtil.adjustTriggerMovement(gamepad.right_trigger);
         } else if (gamepad.left_trigger > ControlUtil.TRIGGER_THRESHOLD) {
             sliderPower = -ControlUtil.adjustTriggerMovement(gamepad.left_trigger);
-        } else {
-            sliderPower = 0.0d; // brake sliders
         }
 
         double leftSliderPower = sliderPower * MAX_SLIDER_SPEED;
@@ -132,6 +133,8 @@ public final class LancersTeleOp extends LinearOpMode {
         rightOuttake.setPosition(RIGHT_SERVO_HORIZONTAL_POSITION);
     }
 
+    private static final double MAX_BASKET_ANGULAR_SPEED_MULTIPLIER = 0.01d;
+
     // TODO: move
     public void outtakeAngularMovement(final @NotNull Gamepad gamepad) {
         // Left stick y
@@ -149,7 +152,7 @@ public final class LancersTeleOp extends LinearOpMode {
             rightOuttake.setPosition(RIGHT_SERVO_VERTICAL_POSITION);
         } else {
             final double currentLeftPos = leftOuttake.getPosition();
-            double targetLeftPos = currentLeftPos + (gamepad.left_stick_y * 0.005d);
+            double targetLeftPos = currentLeftPos + (gamepad.left_stick_y * MAX_BASKET_ANGULAR_SPEED_MULTIPLIER);
 
             // Make sure targetLeftPos is in range for servo
             if (targetLeftPos > 0.9d) {
@@ -162,7 +165,7 @@ public final class LancersTeleOp extends LinearOpMode {
 
             leftOuttake.setPosition(targetLeftPos);
             rightOuttake.setPosition(targetRightPos);
-            telemetry.addData("Left outtake servo position: ", targetLeftPos);
+            telemetry.addData("Left outtake servo position", targetLeftPos);
         }
     }
 
