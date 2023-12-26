@@ -43,7 +43,7 @@ public class TwoWheelTrackingLocalizer extends TwoTrackingWheelLocalizer {
     public static double PARALLEL_X = UnitUtil.mmToInches(-182.418d); // X is the up and down direction
     public static double PARALLEL_Y = UnitUtil.mmToInches(-112.327d); // Y is the strafe direction
 
-    public static double PERPENDICULAR_X = UnitUtil.mmToInches(-184.853d) + (-2.25d); // TODO: Comp 2 bodge
+    public static double PERPENDICULAR_X = UnitUtil.mmToInches(-184.853d);
     public static double PERPENDICULAR_Y = UnitUtil.mmToInches(91.071d);
 
     // Multipliers to adjust for dimensional inaccuracy in both direction
