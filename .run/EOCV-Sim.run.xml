@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="EOCV-Sim" type="JarApplication">
+    <option name="JAR_PATH" value="$PROJECT_DIR$/utils/EOCV-Sim-3.5.2-all.jar" />
+    <option name="WORKING_DIRECTORY" value="." />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <method v="2" />
+  </configuration>
+</component>
