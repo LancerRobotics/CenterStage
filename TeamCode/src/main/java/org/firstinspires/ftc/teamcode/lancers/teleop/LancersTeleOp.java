@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.lancers.config.Constants;
 import org.firstinspires.ftc.teamcode.lancers.config.LancersBotConfig;
-import org.firstinspires.ftc.teamcode.lancers.util.ControlUtil;
 import org.firstinspires.ftc.teamcode.lancers.util.LancersMecanumDrive;
 import org.jetbrains.annotations.NotNull;
 

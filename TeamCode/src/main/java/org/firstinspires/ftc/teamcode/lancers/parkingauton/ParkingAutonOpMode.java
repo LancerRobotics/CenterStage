@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.lancers.auton.parkingauton;
+package org.firstinspires.ftc.teamcode.lancers.parkingauton;
 
 import org.firstinspires.ftc.teamcode.lancers.auton.AllianceColor;
 import org.firstinspires.ftc.teamcode.lancers.auton.LancersAutonOpMode;

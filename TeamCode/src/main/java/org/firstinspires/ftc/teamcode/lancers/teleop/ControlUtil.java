@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.lancers.util;
+package org.firstinspires.ftc.teamcode.lancers.teleop;
 
 public final class ControlUtil {
     public final static float TRIGGER_THRESHOLD = 0.15f;

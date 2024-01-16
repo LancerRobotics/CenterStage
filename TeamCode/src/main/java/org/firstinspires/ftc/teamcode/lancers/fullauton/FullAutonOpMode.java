@@ -1,10 +1,12 @@
-package org.firstinspires.ftc.teamcode.lancers.auton.fullauton;
+package org.firstinspires.ftc.teamcode.lancers.fullauton;
 
+import android.util.Size;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.lancers.auton.LancersAutonOpMode;
 import org.firstinspires.ftc.teamcode.lancers.auton.StartPosition;
 import org.firstinspires.ftc.teamcode.lancers.config.LancersBotConfig;
 import org.firstinspires.ftc.teamcode.lancers.util.LancersMecanumDrive;
+import org.firstinspires.ftc.teamcode.lancers.vision.pipeline.TeamScoringElementPipeline;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.tfod.TfodProcessor;
@@ -76,7 +78,7 @@ public class FullAutonOpMode extends LancersAutonOpMode {
 
             .build();
 
-    private final @NotNull BasicTeamScoringElementRecognizingProcessor tseProcessor = new BasicTeamScoringElementRecognizingProcessor(this);
+    private final @NotNull TeamScoringElementPipeline tseProcessor = new TeamScoringElementPipeline(this);
 
     private @Nullable VisionPortal visionPortal = null;
 
@@ -88,7 +90,7 @@ public class FullAutonOpMode extends LancersAutonOpMode {
                 .setCamera(webcam)
 
                 // Choose a camera resolution. Not all cameras support all resolutions.
-                //.setCameraResolution(new Size(640, 480))
+                .setCameraResolution(new Size(640, 480))
 
                 // Enable the RC preview (LiveView).  Set "false" to omit camera monitoring.
                 .enableLiveView(true)
@@ -105,7 +107,7 @@ public class FullAutonOpMode extends LancersAutonOpMode {
 
         visionPortal.setProcessorEnabled(aprilTag, false); // shining is right; we don't need this (yet)
         visionPortal.setProcessorEnabled(tfod, false); // tfod & aprilTag can be enabled as we need them, don't strip out unused code
-        visionPortal.setProcessorEnabled(tseProcessor, true); // suitable for comp #1
+        visionPortal.setProcessorEnabled(tseProcessor, false); // suitable for comp #1
     }
 
     // Runtime code
@@ -138,6 +140,7 @@ public class FullAutonOpMode extends LancersAutonOpMode {
 
             // first actions in auton (first 10 seconds)
             if (tseProcessor.getTeamScoringElementLocation() == null) {
+                visionPortal.setProcessorEnabled(tseProcessor, true); // wait for TSE to be found
                 continue; // don't move from starting position until we know where the TSE is
             } else {
                 visionPortal.setProcessorEnabled(tseProcessor, false); // done using, save cycles
