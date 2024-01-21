@@ -15,6 +15,7 @@ import org.javatuples.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.opencv.core.*;
+import org.opencv.imgproc.Imgproc;
 
 import java.text.DecimalFormat;
 import java.util.Arrays;
@@ -22,8 +23,6 @@ import java.util.Collection;
 
 import static org.firstinspires.ftc.teamcode.lancers.config.Constants.DEBUG;
 import static org.firstinspires.ftc.teamcode.lancers.vision.VisionUtil.makeGraphicsRect;
-import static org.opencv.core.CvType.CV_8UC1;
-import static org.opencv.core.CvType.CV_8UC3;
 
 public class TeamScoringElementPipeline implements VisionProcessor { // aka pipeline
     private static final @NotNull DecimalFormat DECIMAL_FORMAT = new DecimalFormat("0.00");
@@ -31,7 +30,11 @@ public class TeamScoringElementPipeline implements VisionProcessor { // aka pipe
     // adaptation of old https://github.com/LancerRobotics/CenterStage/blob/16e9bbfd05611b5ae0403141e7f121bac8492ac2/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/opmode/OpenCV.java
     // Previously contained OpenCV Code from tutorial https://www.youtube.com/watch?v=547ZUZiYfQE&t=37s
     private final FullAutonOpMode opMode;
-    // probably will be the right size, but will be changed when initialized
+    private final @NotNull Telemetry telemetry;
+    private @Nullable Scalar targetColor;
+
+
+    // probably will be the right size by default, but will be changed when initialized
     int width = 640;
     int height = 480;
 
@@ -46,9 +49,6 @@ public class TeamScoringElementPipeline implements VisionProcessor { // aka pipe
         this.telemetry = new MultipleTelemetry(opMode.telemetry, FtcDashboard.getInstance().getTelemetry());
     }
 
-    private final @NotNull Telemetry telemetry;
-
-
     @Override
     public void init(int width, int height, CameraCalibration calibration) {
         // Will only be called once
@@ -56,47 +56,42 @@ public class TeamScoringElementPipeline implements VisionProcessor { // aka pipe
         this.height = height;
     }
 
-    private @NotNull Scalar getTargetColor() {
-        return this.opMode.startPosition.getAllianceColor().getScalar();
-    }
-
-    private @NotNull Scalar getTargetColorHSV() {
-        return VisionUtil.rgbScalarToHSVScalar(getTargetColor());
-    }
-
     // https://media.discordapp.net/attachments/758394776403574834/1196581089863548938/Screenshot_2024-01-15_at_5.25.56_PM.png?ex=65b825fb&is=65a5b0fb&hm=c2c4928fb3b626f0ec75705caaf153a499ed7dda07672dcfa5d16f5e8be73eaf&=&format=webp&quality=lossless&width=1722&height=1294
     @Override
     public Object processFrame(Mat frame, long captureTimeNanos) {
         try {
             synchronized (processLock) {
+                assert frame.channels() == 4; // RGBA
+                assert frame.type() == CvType.CV_8UC4; // 8 bit unsigned int, 4 channels
+                assert frame.height() == height;
+                assert frame.width() == width;
+
+                // don't run any opencv stuff before initalization finishes, i don't think the libraries are loaded
+                // until the vision portal is created
+                if (targetColor == null) {
+                    targetColor = opMode.startPosition.getAllianceColor().getTeamScoringElementColorHSV();
+                }
+
                 final @NotNull Rect leftRect = new Rect(1, 1, (width / 5) - 1, height - 1);
                 final @NotNull Rect centerRect = new Rect(width / 5, 1, ((width / 5) * 3) - 1, height - 1);
                 final @NotNull Rect rightRect = new Rect((width / 5) * 4, 1, (width / 5) - 1, height - 1);
 
-                // 4 channels
-                final @NotNull Mat leftMat = frame.submat(leftRect);
-                final @NotNull Mat centerMat = frame.submat(centerRect);
-                final @NotNull Mat rightMat = frame.submat(rightRect);
+                // first step:
+                // convert entire RGBA frame to HSV
+                final @NotNull Mat hsvMat = new Mat(height, width, CvType.CV_8UC3);
+                Imgproc.cvtColor(frame, hsvMat, Imgproc.COLOR_RGB2HSV);
 
-                // convert to HSV
-                final @NotNull Mat leftMatHSV = new Mat(leftMat.size(), CV_8UC3);
-                final @NotNull Mat centerMatHSV = new Mat(centerMat.size(), CV_8UC3);
-                final @NotNull Mat rightMatHSV = new Mat(rightMat.size(), CV_8UC3);
+                // second step:
+                // convert mat to heatmap
+                final @NotNull Mat heatmapMat = new Mat(height, width, CvType.CV_8UC1);
+                VisionUtil.convertToSimilarityHeatMapEuclidean(hsvMat, targetColor, heatmapMat);
+                // NOTE: euclidean might be too slow, but it's the most accurate
 
-                final @NotNull Mat leftMatGray = new Mat(leftMat.size(), CV_8UC1);
-                final @NotNull Mat centerMatGray = new Mat(centerMat.size(), CV_8UC1);
-                final @NotNull Mat rightMatGray = new Mat(rightMat.size(), CV_8UC1);
-
-                // find Euclidean distance between target color and each pixel
-                // THIS IS WAY TOO SLOW! (< 1 FPS)
-//                VisionUtil.convertToSimilarityHeatMapEuclidean(leftMat, getTargetColor(), leftMatGray);
-//                VisionUtil.convertToSimilarityHeatMapEuclidean(centerMat, getTargetColor(), centerMatGray);
-//                VisionUtil.convertToSimilarityHeatMapEuclidean(rightMat, getTargetColor(), rightMatGray);
-
-                // do it w/ HSV instead
-                VisionUtil.convertToSimilarityHeatMapHSV(leftMatHSV, getTargetColorHSV(), leftMatGray);
-                VisionUtil.convertToSimilarityHeatMapHSV(centerMatHSV, getTargetColorHSV(), centerMatGray);
-                VisionUtil.convertToSimilarityHeatMapHSV(rightMatHSV, getTargetColorHSV(), rightMatGray);
+                // third step:
+                // crop heatmap to the 3 zones
+                final @NotNull Mat leftMatGray = new Mat(heatmapMat, leftRect);
+                final @NotNull Mat centerMatGray = new Mat(heatmapMat, centerRect);
+                final @NotNull Mat rightMatGray = new Mat(heatmapMat, rightRect);
 
                 // there are couple other things we can do now: we can either do blob detection or find the sum of each range
                 // we will do the latter for speed's sake

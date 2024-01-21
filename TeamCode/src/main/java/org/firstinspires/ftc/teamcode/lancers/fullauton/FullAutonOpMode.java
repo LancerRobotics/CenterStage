@@ -128,7 +128,6 @@ public class FullAutonOpMode extends LancersAutonOpMode {
         initVision();
 
         waitForStart();
-
         while (!isStopRequested()) {
             idle(); // thread will yield whenever continue is called (0 second sleep)
             Objects.requireNonNull(drive).update();
@@ -143,6 +142,7 @@ public class FullAutonOpMode extends LancersAutonOpMode {
                 visionPortal.setProcessorEnabled(tseProcessor, true); // wait for TSE to be found
                 continue; // don't move from starting position until we know where the TSE is
             } else {
+                telemetry.addData("TSE Location", tseProcessor.getTeamScoringElementLocation().name());
                 visionPortal.setProcessorEnabled(tseProcessor, false); // done using, save cycles
             }
             // TODO: Place purple pixel on TSE spike strip
