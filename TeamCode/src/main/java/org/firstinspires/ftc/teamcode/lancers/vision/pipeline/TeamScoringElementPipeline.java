@@ -61,13 +61,15 @@ public class TeamScoringElementPipeline implements VisionProcessor { // aka pipe
     public Object processFrame(Mat frame, long captureTimeNanos) {
         try {
             synchronized (processLock) {
+                // these are some known attributes of the mat
+                // these assertions are not run in production, but if they did, they would always pass
                 assert frame.channels() == 4; // RGBA
                 assert frame.type() == CvType.CV_8UC4; // 8 bit unsigned int, 4 channels
                 assert frame.height() == height;
                 assert frame.width() == width;
 
-                // don't run any opencv stuff before initalization finishes, i don't think the libraries are loaded
-                // until the vision portal is created
+                // don't run any opencv stuff before initalization finishes,
+                // libraries may only be loaded once the vision portal is initialized
                 if (targetColor == null) {
                     targetColor = opMode.startPosition.getAllianceColor().getTeamScoringElementColorHSV();
                 }

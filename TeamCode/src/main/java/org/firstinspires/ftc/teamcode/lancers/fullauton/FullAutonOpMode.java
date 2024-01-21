@@ -15,11 +15,17 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+import static org.firstinspires.ftc.teamcode.lancers.config.Constants.DEBUG;
+
 /**
  * Holds common code shared between different auton modes.
  * Implements {@link org.firstinspires.ftc.robotcontroller.external.samples.ConceptDoubleVision} & uses {@link LancersMecanumDrive}
  */
 public class FullAutonOpMode extends LancersAutonOpMode {
+    private static final int AUTONOMOUS_PERIOD_LENGTH_SECONDS = 30;
+    private static final int TIME_TO_PARK_SECONDS = 10;
+    private static final int SAFE_CYCLING_TIME = AUTONOMOUS_PERIOD_LENGTH_SECONDS - TIME_TO_PARK_SECONDS;
+
     private @Nullable LancersMecanumDrive drive = null;
 
     public FullAutonOpMode(@NotNull StartPosition startPosition) {
@@ -128,14 +134,22 @@ public class FullAutonOpMode extends LancersAutonOpMode {
         initVision();
 
         waitForStart();
+        final double opModeStartTime = getRuntime(); // the attribute startTime is actually the init time
         while (!isStopRequested()) {
             idle(); // thread will yield whenever continue is called (0 second sleep)
             Objects.requireNonNull(drive).update();
             Objects.requireNonNull(visionPortal); // for type hinting
             telemetry.update();
 
+            if (!DEBUG && (opModeStartTime + AUTONOMOUS_PERIOD_LENGTH_SECONDS < getRuntime())) {
+                break; // break out of loop if we are out of time; get ready to assume teleop
+            }
+
             // See auton psuedocode https://docs.google.com/document/d/1lLHZNmnYf7C67mSHjxOZpvPCSCouX_pffa1dQ7LE-PQ/edit
             // We can disable/enable proccessors as needed to save CPU cycles
+
+            // after we reach each "checkpoint," the loop should be continued
+            // loop can be broken after we are done with our auton and ready to assume teleop
 
             // first actions in auton (first 10 seconds)
             if (tseProcessor.getTeamScoringElementLocation() == null) {
@@ -146,13 +160,24 @@ public class FullAutonOpMode extends LancersAutonOpMode {
                 visionPortal.setProcessorEnabled(tseProcessor, false); // done using, save cycles
             }
             // TODO: Place purple pixel on TSE spike strip
+
             // TODO: Place yellow pixel on backboard according to TSE location
+            // -- TODO: move robot into position where it can see apriltags on backboard
+            // -- TODO: enable apriltag processor
+            // -- TODO: wait to find apriltag
+            // -- TODO: place apriltag
 
             // cycling: for remainder of time until time to park
-            // TODO: 3 points for backstage pixels 5 for backboard pixels, just white ones from stacks
+            if (opModeStartTime + SAFE_CYCLING_TIME > getRuntime()) {
+                // TODO: 3 points for backstage pixels 5 for backboard pixels, just white ones from stacks
+                // will need to use a state machine to track this,
+                // also input shaping to get bot back on track if it is crashed into
+                continue;
+            }
 
             // TODO: Park in backstage then break loop
-            // auton period is 30 seconds, start parking at 20 seconds?
+            // depending on current position of bot, follow different paths to park
+            break;
         }
 
         cleanup(); // no need to autoclose the drive nor vision, easier w/ 2 objects
