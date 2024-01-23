@@ -15,8 +15,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-import static org.firstinspires.ftc.teamcode.lancers.config.Constants.DEBUG;
-
 /**
  * Holds common code shared between different auton modes.
  * Implements {@link org.firstinspires.ftc.robotcontroller.external.samples.ConceptDoubleVision} & uses {@link LancersMecanumDrive}
@@ -140,8 +138,9 @@ public class FullAutonOpMode extends LancersAutonOpMode {
             Objects.requireNonNull(drive).update();
             Objects.requireNonNull(visionPortal); // for type hinting
             telemetry.update();
+            multipleTelemetry.update();
 
-            if (!DEBUG && (opModeStartTime + AUTONOMOUS_PERIOD_LENGTH_SECONDS < getRuntime())) {
+            if (opModeStartTime + AUTONOMOUS_PERIOD_LENGTH_SECONDS < getRuntime()) {
                 break; // break out of loop if we are out of time; get ready to assume teleop
             }
 
@@ -156,9 +155,11 @@ public class FullAutonOpMode extends LancersAutonOpMode {
                 visionPortal.setProcessorEnabled(tseProcessor, true); // wait for TSE to be found
                 continue; // don't move from starting position until we know where the TSE is
             } else {
-                telemetry.addData("TSE Location", tseProcessor.getTeamScoringElementLocation().name());
+                multipleTelemetry.addData("TSE Location", tseProcessor.getTeamScoringElementLocation().name());
                 visionPortal.setProcessorEnabled(tseProcessor, false); // done using, save cycles
             }
+            // TODO: add backup TensorFlow processor if the TSE is not found using the OpenCV flow after 5 seconds
+
             // TODO: Place purple pixel on TSE spike strip
 
             // TODO: Place yellow pixel on backboard according to TSE location

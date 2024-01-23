@@ -1,26 +1,22 @@
 package org.firstinspires.ftc.teamcode.lancers.vision;
 
+import org.javatuples.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.opencv.core.Mat;
-import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
+
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.opencv.core.CvType.CV_8UC3;
 
 public final class VisionUtil {
-    private final static double COLOR_SIMILARITY_THRESHOLD = 50;
-
     private VisionUtil() {
     }
 
-    public static android.graphics.Rect makeGraphicsRect(Rect rect, float scaleBmpPxToCanvasPx) {
-        int left = Math.round(rect.x * scaleBmpPxToCanvasPx);
-        int top = Math.round(rect.y * scaleBmpPxToCanvasPx);
-        int right = left + Math.round(rect.width * scaleBmpPxToCanvasPx);
-        int bottom = top + Math.round(rect.height * scaleBmpPxToCanvasPx);
-
-        return new android.graphics.Rect(left, top, right, bottom);
+    public static @NotNull Stream<Pair<Integer, Integer>> getCoordinateStream(final @NotNull Mat mat) {
+        return IntStream.range(0, mat.rows()).boxed().flatMap(i -> IntStream.range(0, mat.cols()).mapToObj(j -> new Pair<>(i, j)));
     }
 
     public static @NotNull Scalar rgbScalarToHSVScalar(final @NotNull Scalar rgbScalar) {
@@ -46,32 +42,60 @@ public final class VisionUtil {
                 + Math.pow(color1[2] - color2[2], 2));
     }
 
-    public static void convertToSimilarityHeatMapEuclidean(Mat srcMat, Scalar targetColor, Mat destGrayscaleMat) {
-        for (int i = 0; i < srcMat.rows(); i++) {
-            for (int j = 0; j < srcMat.cols(); j++) {
-                final @NotNull double[] pixel = srcMat.get(i, j);
-                final double distance = calculateEuclideanDistance(pixel, targetColor.val);
-                destGrayscaleMat.put(i, j, distance);
-            }
-        }
+    public static void convertToSimilarityHeatMapEuclideanRGB(Mat srcMat, Scalar targetColor, Mat destGrayscaleMat) {
+        getCoordinateStream(srcMat).parallel().forEach(pair -> {
+            final int i = pair.getValue0();
+            final int j = pair.getValue1();
+            final @NotNull double[] pixel = srcMat.get(i, j);
+            final double similarity = 255.0d - calculateEuclideanDistance(pixel, targetColor.val);
+            destGrayscaleMat.put(i, j, similarity);
+        });
     }
 
-    private static double simpleColorDifferenceHSV(double[] color1, double[] color2) {
-        // ignore saturation and value
-        // Check if each color channel is within the specified threshold
-        if (Math.abs(color1[0] - color2[0]) > COLOR_SIMILARITY_THRESHOLD) {
+    private final static double OPENCV_HUE_MAX = 179.0d;  // OpenCV hue only goes to 179
+    // if the left coefficient of this value is 0.2, then it means that the color can be 20% different
+
+    // https://stackoverflow.com/questions/35113979/calculate-distance-between-colors-in-hsv-space
+    private static double colorDifferenceHSVNormalized0_1(double[] color1, double[] color2) {
+        final double h1 = color1[0];
+        final double h2 = color2[0];
+
+        final double hueDifferenceNormalized0_1 = Math.min(Math.abs(h1 - h2), OPENCV_HUE_MAX - Math.abs(h1 - h2)) / OPENCV_HUE_MAX;
+
+        final double s1 = color1[1];
+        final double s2 = color2[1];
+
+        final double saturationDifferenceNormalized0_1 = Math.abs(s1 - s2) / 255.0d;
+
+        final double v1 = color1[2];
+        final double v2 = color2[2];
+
+        final double valueDifferenceNormalized0_1 = Math.abs(v1 - v2) / 255.0d;
+
+        return Math.sqrt(Math.pow(hueDifferenceNormalized0_1, 2) +
+                Math.pow(saturationDifferenceNormalized0_1, 2) +
+                Math.pow(valueDifferenceNormalized0_1, 2));
+    }
+
+    private static double getGrayscaleColorFromDifference(final double normalizedDifference0_1) {
+        final double grayscaleColor = 255.0d * (1.0d - normalizedDifference0_1);
+
+        // set a lowpass to filter out noise
+        if (grayscaleColor < 100.0d) {
             return 0;
+        } else {
+            return grayscaleColor;
         }
-        return 1;
     }
 
     public static void convertToSimilarityHeatMapHSV(Mat srcMat, Scalar targetColor, Mat destGrayscaleMat) {
-        for (int i = 0; i < srcMat.rows(); i++) {
-            for (int j = 0; j < srcMat.cols(); j++) {
-                final @NotNull double[] pixel = srcMat.get(i, j);
-                final double similarity = simpleColorDifferenceHSV(pixel, targetColor.val);
-                destGrayscaleMat.put(i, j, similarity);
-            }
-        }
+        getCoordinateStream(srcMat).parallel().forEach(pair -> {
+            final int i = pair.getValue0();
+            final int j = pair.getValue1();
+            final @NotNull double[] pixel = srcMat.get(i, j);
+            final double differenceHSV = colorDifferenceHSVNormalized0_1(pixel, targetColor.val);
+            final double grayscaleColor = getGrayscaleColorFromDifference(differenceHSV);
+            destGrayscaleMat.put(i, j, grayscaleColor);
+        });
     }
 }
