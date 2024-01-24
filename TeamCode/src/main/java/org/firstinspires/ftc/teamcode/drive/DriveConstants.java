@@ -57,9 +57,9 @@ public class DriveConstants {
      * empirically tuned.
      */
     // lancers: automatic first, then manual
-    public static double kV = 0.023d;
-    public static double kA = 0.0035d;
-    public static double kStatic = 0.001d;
+    public static double kV = 0.0175d;
+    public static double kA = 0.002d;
+    public static double kStatic = 0.13d;
 
     /*
      * These values are used to generate the trajectories for you robot. To ensure proper operation,
