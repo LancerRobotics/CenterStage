@@ -31,6 +31,7 @@ import static org.firstinspires.ftc.teamcode.drive.DriveConstants.*;
  * Ensure that this is copied into your project.
  */
 @Config
+// https://learnroadrunner.com/advanced.html#interrupting-a-live-trajectory
 public class SampleMecanumDriveCancelable extends MecanumDrive {
     public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(0, 0, 0);
     public static PIDCoefficients HEADING_PID = new PIDCoefficients(0, 0, 0);

@@ -186,6 +186,7 @@ public class FullAutonOpMode extends LancersAutonOpMode {
 
     private @NotNull State state = State.INIT;
 
+    // https://learnroadrunner.com/advanced.html#finite-state-machine-following
     public void runOneStepTopLevelStateMachine() {
         Objects.requireNonNull(drive);
         Objects.requireNonNull(visionPortal);
