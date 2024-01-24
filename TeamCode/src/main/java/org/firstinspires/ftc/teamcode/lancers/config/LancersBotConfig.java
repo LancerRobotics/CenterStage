@@ -19,6 +19,7 @@ public final class LancersBotConfig {
     // == CONTROL HUB / LEFT ==
 
     // Control Hub -- Motors & Encoders
+    // https://discord.com/channels/225450307654647808/225451520911605765/999780526594457670
     public static final @NotNull String LEFT_FRONT_MOTOR = "frontLeft"; // 0
     public static final @NotNull String LEFT_REAR_MOTOR = "rearLeft"; // 1
     public static final @NotNull String LEFT_SLIDE_MOTOR = "SlideMotorL"; // 2
