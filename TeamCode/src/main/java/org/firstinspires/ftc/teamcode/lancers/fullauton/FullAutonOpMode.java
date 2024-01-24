@@ -126,40 +126,6 @@ public class FullAutonOpMode extends LancersAutonOpMode {
         }
     }
 
-    private enum CyclingSubState {
-        FIND_STACK,
-        MOVE_TO_STACK,
-        PICK_UP_STACK,
-        MOVE_TO_BACKBOARD,
-        PLACE_STACK,
-        DONE
-    }
-
-    private @NotNull CyclingSubState cyclingSubState = CyclingSubState.FIND_STACK;
-
-    public void runOneStepCyclingStateMachine() {
-        assert state == State.CYCLE;
-
-        Objects.requireNonNull(drive);
-        Objects.requireNonNull(visionPortal);
-
-        // See auton psuedocode https://docs.google.com/document/d/1lLHZNmnYf7C67mSHjxOZpvPCSCouX_pffa1dQ7LE-PQ/edit
-        // We can disable/enable proccessors as needed to save CPU cycles
-
-        switch (cyclingSubState) {
-            case FIND_STACK:
-                if (!visionPortal.getProcessorEnabled(tfod)) {
-                    visionPortal.setProcessorEnabled(tfod, true); // wait for stack to be found
-                }
-                // TODO: get to an area where the stack can be seen
-                if (tfod.getRecognitions() != null) {
-                    visionPortal.setProcessorEnabled(tfod, false); // done using, save cycles
-                    cyclingSubState = CyclingSubState.MOVE_TO_STACK;
-                }
-                break;
-        }
-    }
-
     private enum State {
         INIT,
 
@@ -175,7 +141,10 @@ public class FullAutonOpMode extends LancersAutonOpMode {
         PLACE_YELLOW_PIXEL__DEPOSIT,
 
         CYCLE__MOVE_TO_SAFE_STARTING_SPOT,
-        CYCLE,
+        CYCLE__FIND_STACK,
+        CYCLE__PICKUP_STACK,
+        CYCLE__MOVE_TO_BACKBOARD,
+        CYCLE__PLACE_PIXEL,
 
         PARK__NEUTRAL_POSITION,
         PARK__NEUTRAL_POSITION_BACKSTAGE,
@@ -187,7 +156,7 @@ public class FullAutonOpMode extends LancersAutonOpMode {
     private @NotNull State state = State.INIT;
 
     // https://learnroadrunner.com/advanced.html#finite-state-machine-following
-    public void runOneStepTopLevelStateMachine() {
+    public void runStateMachine() {
         Objects.requireNonNull(drive);
         Objects.requireNonNull(visionPortal);
 
@@ -240,22 +209,9 @@ public class FullAutonOpMode extends LancersAutonOpMode {
                 break;
             case PLACE_YELLOW_PIXEL__DEPOSIT:
                 // TODO: move the basket wheels backwards to deposit the pixel
-                state = State.CYCLE__MOVE_TO_SAFE_STARTING_SPOT;
+                state = State.PARK__NEUTRAL_POSITION;
                 break;
-            case CYCLE__MOVE_TO_SAFE_STARTING_SPOT:
-                // TODO: give the backboard and other robots a large berth before beginning to cycle
-                state = State.CYCLE;
-                break;
-            case CYCLE:
-                if (opModeStartTime + SAFE_CYCLING_TIME < getRuntime()) {
-                    // it isn't safe to cycle anymore, time to park
-                    state = State.PARK__NEUTRAL_POSITION;
-                }
-                runOneStepCyclingStateMachine();
-                if (state != State.CYCLE && visionPortal.getProcessorEnabled(tfod)) {
-                    visionPortal.setProcessorEnabled(tfod, false); // done using, save cycles
-                }
-                break;
+            // TODO: cycling would go here if we chose to use it
             case PARK__NEUTRAL_POSITION:
                 // TODO: move to a neutral position with room to move
                 state = State.PARK__NEUTRAL_POSITION_BACKSTAGE;
@@ -295,15 +251,18 @@ public class FullAutonOpMode extends LancersAutonOpMode {
         opModeStartTime = getRuntime(); // the attribute startTime is actually the init time
         state = State.FIND_TSE;
 
-        while (!isStopRequested()) {
-            runOneStepBackgroundTasks();
-            runOneStepTopLevelStateMachine();
-            if (state == State.DONE) {
-                break;
+        try {
+            while (!isStopRequested()) {
+                // we need to yield at the start of the thread in case our code is terminated halfway through
+                Thread.yield(); // don't hog resources; allow other threads to run like the vision thread(s)
+                runOneStepBackgroundTasks();
+                runStateMachine();
+                if (state == State.DONE) {
+                    break;
+                }
             }
-            Thread.yield(); // don't hog resources; allow other threads to run like the vision thread(s)
+        } finally {
+            cleanup(); // no need to autoclose the drive nor vision, easier w/ 2 objects
         }
-
-        cleanup(); // no need to autoclose the drive nor vision, easier w/ 2 objects
     }
 }
