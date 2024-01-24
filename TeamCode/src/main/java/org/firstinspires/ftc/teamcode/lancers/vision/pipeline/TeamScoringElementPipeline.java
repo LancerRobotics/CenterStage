@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.Getter;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
-import org.firstinspires.ftc.teamcode.lancers.auton.TeamScoringElementLocation;
+import org.firstinspires.ftc.teamcode.lancers.auton.StartPosition;
 import org.firstinspires.ftc.teamcode.lancers.fullauton.FullAutonOpMode;
 import org.firstinspires.ftc.teamcode.lancers.vision.CanvasUtil;
 import org.firstinspires.ftc.teamcode.lancers.vision.VisionUtil;
@@ -38,7 +38,7 @@ public class TeamScoringElementPipeline implements VisionProcessor { // aka pipe
     int height = 480;
 
     @Getter
-    private @Nullable TeamScoringElementLocation teamScoringElementLocation = null;
+    private @Nullable StartPosition.TeamScoringElementLocation teamScoringElementLocation = null;
 
     private final FullAutonOpMode opMode;
     private final @NotNull Telemetry telemetry;
@@ -62,7 +62,7 @@ public class TeamScoringElementPipeline implements VisionProcessor { // aka pipe
         assert SUBREGION_COUNT >= 3; // must be at least 3
     }
 
-    private @NotNull Rect getZoneForLocation(final @NotNull TeamScoringElementLocation location) {
+    private @NotNull Rect getZoneForLocation(final @NotNull StartPosition.TeamScoringElementLocation location) {
         switch (location) {
             case LEFT:
                 return new Rect(1, 1, (width / SUBREGION_COUNT) - 1, height - 1);
@@ -122,7 +122,7 @@ public class TeamScoringElementPipeline implements VisionProcessor { // aka pipe
         // third step:
         // crop heatmap to the 3 zones
         final @NotNull List<FrameOutputContext.CalculatedDetectionZone> zoneList =
-                Arrays.stream(TeamScoringElementLocation.values())
+                Arrays.stream(StartPosition.TeamScoringElementLocation.values())
                         .parallel() // evidently, opencv is thread safe
                         .map(
                                 (location) -> {
@@ -148,13 +148,13 @@ public class TeamScoringElementPipeline implements VisionProcessor { // aka pipe
     private static final long CONFIDENCE_THRESHOLD_NANOS = 1_000_000_000L; // 1 second
     private long lastKnownLocationTimeNanos = 0;
 
-    private @Nullable TeamScoringElementLocation lastKnownLocation = null;
+    private @Nullable StartPosition.TeamScoringElementLocation lastKnownLocation = null;
 
     private static final long FRAMES_SINCE_LAST_KNOWN_LOCATION_THRESHOLD = 3;
     private long framesSinceLastKnownLocation = 0;
 
     @Contract(pure = false) // there is a side effect
-    public boolean findIfEstimateIsGood(final @Nullable TeamScoringElementLocation tse, final long captureTimeNanos) {
+    public boolean findIfEstimateIsGood(final @Nullable StartPosition.TeamScoringElementLocation tse, final long captureTimeNanos) {
         // with both the estimated location and the timestamp of when the frame was captured,
         // we can check to see if we got the same answer for at least 1 second
         // if we did, we can be confident that the answer is correct (return true)
@@ -192,7 +192,7 @@ public class TeamScoringElementPipeline implements VisionProcessor { // aka pipe
                 assert frame.width() == width;
 
                 final @NotNull FrameOutputContext ctx = computeContextFromFrame(frame);
-                final @Nullable TeamScoringElementLocation tse = ctx.getLocation();
+                final @Nullable StartPosition.TeamScoringElementLocation tse = ctx.getLocation();
                 final boolean isEstimateGood = findIfEstimateIsGood(tse, captureTimeNanos);
 
                 if (isEstimateGood) {
@@ -284,7 +284,7 @@ public class TeamScoringElementPipeline implements VisionProcessor { // aka pipe
         /**
          * @return location with highest relative lit ratio
          */
-        private @Nullable TeamScoringElementLocation getLocation() {
+        private @Nullable StartPosition.TeamScoringElementLocation getLocation() {
             // return the location with the highest confidence if the confidence is above a threshold
             // otherwise, return null
             final @NotNull Optional<FrameOutputContext.CalculatedDetectionZone> maxConfidenceZone = zones.stream().max(Comparator.comparingDouble((z) -> z.getRelativeLitRatio(this)));
@@ -298,7 +298,7 @@ public class TeamScoringElementPipeline implements VisionProcessor { // aka pipe
         @Data
         private final static class CalculatedDetectionZone {
             public final @NotNull Rect rect;
-            public final @NotNull TeamScoringElementLocation location;
+            public final @NotNull StartPosition.TeamScoringElementLocation location;
             public final double sum;
             public final @NotNull Mat grayscaleMat; // potential memory leak. don't let these objects stick around
 

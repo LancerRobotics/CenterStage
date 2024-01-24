@@ -46,4 +46,27 @@ public enum StartPosition {
                 return AllianceColor.BLUE;
         }
     }
+
+    public @NotNull StagePosition getStagePosition() {
+        switch (this) {
+            case RED_BACK_STAGE:
+            case BLUE_BACK_STAGE:
+                return StagePosition.BACK;
+            case RED_FRONT_STAGE:
+            case BLUE_FRONT_STAGE:
+            default: // already exhaustive
+                return StagePosition.FRONT;
+        }
+    }
+
+    public enum StagePosition {
+        FRONT,
+        BACK
+    }
+
+    public enum TeamScoringElementLocation {
+        LEFT,
+        CENTER,
+        RIGHT
+    }
 }

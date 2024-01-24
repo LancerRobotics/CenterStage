@@ -1,12 +1,15 @@
 package org.firstinspires.ftc.teamcode.lancers.fullauton;
 
 import android.util.Size;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.lancers.auton.LancersAutonOpMode;
 import org.firstinspires.ftc.teamcode.lancers.auton.StartPosition;
 import org.firstinspires.ftc.teamcode.lancers.config.LancersBotConfig;
 import org.firstinspires.ftc.teamcode.lancers.util.LancersMecanumDrive;
 import org.firstinspires.ftc.teamcode.lancers.vision.pipeline.TeamScoringElementPipeline;
+import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequenceBuilder;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.tfod.TfodProcessor;
@@ -131,111 +134,135 @@ public class FullAutonOpMode extends LancersAutonOpMode {
 
         FIND_TSE,
 
-        PLACE_PURPLE_PIXEL__MOVE_INTO_POSITION,
-        PLACE_PURPLE_PIXEL__DEPOSIT_PIXEL,
-
-        PLACE_YELLOW_PIXEL__MOVE_INTO_POSITION_FOR_FINDING_TAG,
-        PLACE_YELLOW_PIXEL__SCAN_APRILTAG_AFFIRM_POSE,
-        PLACE_YELLOW_PIXEL__MOVE_ONTO_BACKBOARD,
-        PLACE_YELLOW_PIXEL__SLIDE_UP,
-        PLACE_YELLOW_PIXEL__DEPOSIT,
-
-        CYCLE__MOVE_TO_SAFE_STARTING_SPOT,
-        CYCLE__FIND_STACK,
-        CYCLE__PICKUP_STACK,
-        CYCLE__MOVE_TO_BACKBOARD,
-        CYCLE__PLACE_PIXEL,
-
-        PARK__NEUTRAL_POSITION,
-        PARK__NEUTRAL_POSITION_BACKSTAGE,
-        PARK,
+        TRAJECTORY,
 
         DONE
     }
 
     private @NotNull State state = State.INIT;
 
+    private void doStateSwitchActivity(final @NotNull State newState) {
+        Objects.requireNonNull(drive);
+        Objects.requireNonNull(visionPortal);
+
+        switch (newState) {
+            case FIND_TSE:
+                visionPortal.setProcessorEnabled(tseProcessor, true);
+                break;
+            case TRAJECTORY:
+                assert tseProcessor.getTeamScoringElementLocation() != null;
+                final @NotNull TrajectorySequenceBuilder builder = drive.trajectorySequenceBuilder(drive.getPoseEstimate());
+                // move into position to put down the pixel
+
+                builder.forward(2.0d); // give board board some space
+                switch (tseProcessor.getTeamScoringElementLocation()) {
+                    case CENTER:
+                        switch (startPosition) {
+                            case RED_FRONT_STAGE:
+                                builder.splineTo(new Vector2d(-43.63, -35.15), Math.toRadians(90));
+                                break;
+                            case RED_BACK_STAGE:
+                                builder.splineTo(new Vector2d(17.24, -35.39), Math.toRadians(90.00));
+                                break;
+                            case BLUE_FRONT_STAGE:
+                                builder.splineTo(new Vector2d(-43.93, 35.31), Math.toRadians(270.00));
+                                break;
+                            case BLUE_BACK_STAGE:
+                                builder.splineTo(new Vector2d(17.24, 35.39), Math.toRadians(270.00));
+                                break;
+                        }
+                        break;
+                    case LEFT:
+                        builder.turn(Math.toRadians(90.0d)); // counter-clockwise
+                        builder.strafeRight(22.0d); // TODO: find correct distance
+                        break;
+                    case RIGHT:
+                        builder.turn(Math.toRadians(-90.0d)); // clockwise
+                        builder.strafeLeft(22.0d); // TODO: find correct distance
+                        break;
+                }
+
+                // drop the pixel
+                final @NotNull DcMotor intake = hardwareMap.get(DcMotor.class, LancersBotConfig.INTAKE_MOTOR);
+                final double intakePower;
+                switch (tseProcessor.getTeamScoringElementLocation()) {
+                    case LEFT:
+                    case RIGHT:
+                        intakePower = -0.6d;
+                        break;
+                    case CENTER:
+                    default:
+                        intakePower = -0.3d;
+                        break;
+                }
+                builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
+                    intake.setPower(intakePower);
+                });
+                builder.waitSeconds(0.5);
+                builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
+                    intake.setPower(0);
+                });
+
+
+                // yellow pixel on board
+                // TODO
+
+                // park
+                // TODO
+
+                // we are done
+                builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
+                    synchronized (stateMachineLock) {
+                        switchStateTo(State.DONE);
+                    }
+                });
+
+                drive.followTrajectorySequenceAsync(builder.build());
+                break;
+        }
+    }
+
+    private void switchStateTo(final @NotNull State newState) {
+        state = newState;
+        doStateSwitchActivity(newState);
+    }
+
+    final @NotNull Object stateMachineLock = new Object();
+
     // https://learnroadrunner.com/advanced.html#finite-state-machine-following
-    public void runStateMachine() {
+    private void runStateMachine() {
         Objects.requireNonNull(drive);
         Objects.requireNonNull(visionPortal);
 
         // See auton psuedocode https://docs.google.com/document/d/1lLHZNmnYf7C67mSHjxOZpvPCSCouX_pffa1dQ7LE-PQ/edit
         // We can disable/enable proccessors as needed to save CPU cycles
 
-        switch (state) {
-            case FIND_TSE:
-                if (!visionPortal.getProcessorEnabled(tseProcessor)) {
-                    visionPortal.setProcessorEnabled(tseProcessor, true); // wait for TSE to be found
-                }
-                if (tseProcessor.getTeamScoringElementLocation() != null) {
-                    visionPortal.setProcessorEnabled(tseProcessor, false); // done using, save cycles
-                    state = State.PLACE_PURPLE_PIXEL__MOVE_INTO_POSITION;
-                }
-                break;
-            case PLACE_PURPLE_PIXEL__MOVE_INTO_POSITION:
-                assert tseProcessor.getTeamScoringElementLocation() != null;
-                // TODO: move in front of spike strip in question
-                state = State.PLACE_PURPLE_PIXEL__DEPOSIT_PIXEL;
-                break;
-            case PLACE_PURPLE_PIXEL__DEPOSIT_PIXEL:
-                // TODO: run intake in reverse to deposit pixel
-                state = State.PLACE_YELLOW_PIXEL__MOVE_INTO_POSITION_FOR_FINDING_TAG;
-                break;
-            case PLACE_YELLOW_PIXEL__MOVE_INTO_POSITION_FOR_FINDING_TAG:
-                // TODO: move to a place in front of the backboard
-                state = State.PLACE_YELLOW_PIXEL__SCAN_APRILTAG_AFFIRM_POSE;
-                break;
-            case PLACE_YELLOW_PIXEL__SCAN_APRILTAG_AFFIRM_POSE:
-                if (!visionPortal.getProcessorEnabled(aprilTag)) {
-                    visionPortal.setProcessorEnabled(aprilTag, true); // wait for apriltag(s) to be found
-                }
-                // TODO: wait for the apriltag to be found, and then update the pose estimate in the drive
-                // TODO: this could be unnecessary? see if we desync too much w/ fully calibrated RR
-                if (true) { // when updated
-                    if (visionPortal.getProcessorEnabled(aprilTag)) {
-                        visionPortal.setProcessorEnabled(aprilTag, false); // done using, save cycles
+        synchronized (stateMachineLock) {
+            switch (state) {
+                case FIND_TSE:
+                    if (tseProcessor.getTeamScoringElementLocation() != null) {
+                        visionPortal.setProcessorEnabled(tseProcessor, false); // done using, save cycles
+                        switchStateTo(State.TRAJECTORY);
                     }
-                    state = State.PLACE_YELLOW_PIXEL__MOVE_ONTO_BACKBOARD;
-                }
-                break;
-            case PLACE_YELLOW_PIXEL__MOVE_ONTO_BACKBOARD:
-                // TODO: move into a position with the back of the robot against the backboard so we can slide up & deposit
-                state = State.PLACE_YELLOW_PIXEL__SLIDE_UP;
-                break;
-            case PLACE_YELLOW_PIXEL__SLIDE_UP:
-                // TODO: move the slides up about halfway
-                state = State.PLACE_YELLOW_PIXEL__DEPOSIT;
-                break;
-            case PLACE_YELLOW_PIXEL__DEPOSIT:
-                // TODO: move the basket wheels backwards to deposit the pixel
-                state = State.PARK__NEUTRAL_POSITION;
-                break;
-            // TODO: cycling would go here if we chose to use it
-            case PARK__NEUTRAL_POSITION:
-                // TODO: move to a neutral position with room to move
-                state = State.PARK__NEUTRAL_POSITION_BACKSTAGE;
-                break;
-            case PARK__NEUTRAL_POSITION_BACKSTAGE:
-                // TODO: we may already be in front of the backboard, but if we are frontstage we should spline over
-                state = State.PARK;
-                break;
-            case PARK:
-                // TODO: Park on the line backstage
-                state = State.DONE;
-                break;
+                    break;
+                case TRAJECTORY:
+                    if (drive.isBusy()) {
+                        // trajectory is running
+                        break;
+                    }
+            }
         }
     }
 
     public void runOneStepBackgroundTasks() {
-        telemetry.update();
-        multipleTelemetry.update();
-
         Objects.requireNonNull(drive).update();
         // if we ever add PID for the slides, it would go here too, but we don't have encoders on the sides right now
 
         multipleTelemetry.addData("State", state);
-        multipleTelemetry.addData("Cycling Substate", cyclingSubState);
+        multipleTelemetry.addData("Running trajectory", drive.isBusy());
+
+        telemetry.update();
+        multipleTelemetry.update();
     }
 
     double opModeStartTime = 0.0;
@@ -243,13 +270,13 @@ public class FullAutonOpMode extends LancersAutonOpMode {
     // https://learnroadrunner.com/advanced.html#finite-state-machine-following
     @Override
     public void runOpMode() throws InterruptedException {
-        state = State.INIT;
         initDrive();
         initVision();
+        opModeStartTime = getRuntime(); // the attribute startTime is actually the init time
+        switchStateTo(State.INIT);
 
         waitForStart();
-        opModeStartTime = getRuntime(); // the attribute startTime is actually the init time
-        state = State.FIND_TSE;
+        switchStateTo(State.FIND_TSE);
 
         try {
             while (!isStopRequested()) {
