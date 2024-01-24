@@ -158,7 +158,6 @@ public class FullAutonOpMode extends LancersAutonOpMode {
                 multipleTelemetry.addData("TSE Location", tseProcessor.getTeamScoringElementLocation().name());
                 visionPortal.setProcessorEnabled(tseProcessor, false); // done using, save cycles
             }
-            // TODO: add backup TensorFlow processor if the TSE is not found using the OpenCV flow after 5 seconds
 
             // TODO: Place purple pixel on TSE spike strip
 
