@@ -60,6 +60,7 @@ public final class VisionUtil {
         final double h1 = color1[0];
         final double h2 = color2[0];
 
+        // remember, 0 and 360 degrees are the same hue, so we will account for that by checking which is closer
         final double hueDifferenceNormalized0_1 = Math.min(Math.abs(h1 - h2), OPENCV_HUE_MAX - Math.abs(h1 - h2)) / OPENCV_HUE_MAX;
 
         final double s1 = color1[1];
@@ -77,15 +78,11 @@ public final class VisionUtil {
                 Math.pow(valueDifferenceNormalized0_1, 2));
     }
 
+    private static final double LOW_PASS_THRESHOLD = 100.0d;
+
     private static double getGrayscaleColorFromDifference(final double normalizedDifference0_1) {
         final double grayscaleColor = 255.0d * (1.0d - normalizedDifference0_1);
-
-        // set a lowpass to filter out noise
-        if (grayscaleColor < 100.0d) {
-            return 0;
-        } else {
-            return grayscaleColor;
-        }
+        return grayscaleColor > LOW_PASS_THRESHOLD ? grayscaleColor : 0.0d;
     }
 
     public static void convertToSimilarityHeatMapHSV(Mat srcMat, Scalar targetColor, Mat destGrayscaleMat) {

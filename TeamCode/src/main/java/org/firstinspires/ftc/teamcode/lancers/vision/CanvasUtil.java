@@ -6,9 +6,14 @@ import org.jetbrains.annotations.NotNull;
 import org.opencv.core.Mat;
 import org.opencv.core.Rect;
 
+import java.text.DecimalFormat;
+
 import static org.firstinspires.ftc.teamcode.lancers.vision.VisionUtil.getCoordinateStream;
 
 public final class CanvasUtil {
+    // any more decimal places is unweildy
+    public static final @NotNull DecimalFormat DECIMAL_FORMAT = new DecimalFormat("0.00");
+
     private CanvasUtil() {
     }
 
