@@ -25,24 +25,33 @@ public final class CanvasUtil {
         final int width = mat.cols();
         final int height = mat.rows();
         final int[] pixels = new int[width * height];
-        getCoordinateStream(mat).forEach(pair -> {
+        getCoordinateStream(mat).forEach(pair -> { // don't run in parallel, arrays aren't thread safe
             final int i = pair.getValue0();
             final int j = pair.getValue1();
-            final int pixel = (int) mat.get(i, j)[0];
-            pixels[i * width + j] = android.graphics.Color.argb(255, pixel, pixel, pixel);
+            final double[] pixel = mat.get(i, j);
+
+            if (mat.channels() >= 4) {
+                pixels[i * width + j] = android.graphics.Color.argb((int) pixel[3], (int) pixel[0], (int) pixel[1], (int) pixel[2]);
+            } else if (mat.channels() >= 3) {
+                pixels[i * width + j] = android.graphics.Color.argb(255, (int) pixel[0], (int) pixel[1], (int) pixel[2]);
+            } else if (mat.channels() >= 2) {
+                pixels[i * width + j] = android.graphics.Color.argb(255, (int) pixel[0], (int) pixel[1], (int) pixel[1]);
+            } else {
+                pixels[i * width + j] = android.graphics.Color.argb(255, (int) pixel[0], (int) pixel[0], (int) pixel[0]);
+            }
         });
         return android.graphics.Bitmap.createBitmap(pixels, width, height, android.graphics.Bitmap.Config.ARGB_8888);
     }
 
-    final static Paint paint = new Paint();
+    private final static Paint BITMAP_PAINT = new Paint();
 
     static {
-        paint.setStyle(Paint.Style.FILL);
-        paint.setARGB(255, 255, 255, 255);
+        BITMAP_PAINT.setStyle(Paint.Style.FILL);
+        BITMAP_PAINT.setARGB(255, 255, 255, 255);
     }
 
     public static void drawMatOntoCanvas(final @NotNull Canvas canvas, final @NotNull android.graphics.Rect region, final @NotNull Mat mat) {
         final @NotNull android.graphics.Bitmap bitmap = getBitmapFromMat(mat);
-        canvas.drawBitmap(bitmap, null, region, paint);
+        canvas.drawBitmap(bitmap, null, region, BITMAP_PAINT);
     }
 }
