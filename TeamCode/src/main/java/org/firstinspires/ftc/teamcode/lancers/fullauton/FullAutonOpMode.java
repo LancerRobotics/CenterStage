@@ -126,58 +126,181 @@ public class FullAutonOpMode extends LancersAutonOpMode {
         }
     }
 
+    private enum CyclingSubState {
+        FIND_STACK,
+        MOVE_TO_STACK,
+        PICK_UP_STACK,
+        MOVE_TO_BACKBOARD,
+        PLACE_STACK,
+        DONE
+    }
+
+    private @NotNull CyclingSubState cyclingSubState = CyclingSubState.FIND_STACK;
+
+    public void runOneStepCyclingStateMachine() {
+        assert state == State.CYCLE;
+
+        Objects.requireNonNull(drive);
+        Objects.requireNonNull(visionPortal);
+
+        // See auton psuedocode https://docs.google.com/document/d/1lLHZNmnYf7C67mSHjxOZpvPCSCouX_pffa1dQ7LE-PQ/edit
+        // We can disable/enable proccessors as needed to save CPU cycles
+
+        switch (cyclingSubState) {
+            case FIND_STACK:
+                if (!visionPortal.getProcessorEnabled(tfod)) {
+                    visionPortal.setProcessorEnabled(tfod, true); // wait for stack to be found
+                }
+                // TODO: get to an area where the stack can be seen
+                if (tfod.getRecognitions() != null) {
+                    visionPortal.setProcessorEnabled(tfod, false); // done using, save cycles
+                    cyclingSubState = CyclingSubState.MOVE_TO_STACK;
+                }
+                break;
+        }
+    }
+
+    private enum State {
+        INIT,
+
+        FIND_TSE,
+
+        PLACE_PURPLE_PIXEL__MOVE_INTO_POSITION,
+        PLACE_PURPLE_PIXEL__DEPOSIT_PIXEL,
+
+        PLACE_YELLOW_PIXEL__MOVE_INTO_POSITION_FOR_FINDING_TAG,
+        PLACE_YELLOW_PIXEL__SCAN_APRILTAG_AFFIRM_POSE,
+        PLACE_YELLOW_PIXEL__MOVE_ONTO_BACKBOARD,
+        PLACE_YELLOW_PIXEL__SLIDE_UP,
+        PLACE_YELLOW_PIXEL__DEPOSIT,
+
+        CYCLE__MOVE_TO_SAFE_STARTING_SPOT,
+        CYCLE,
+
+        PARK__NEUTRAL_POSITION,
+        PARK__NEUTRAL_POSITION_BACKSTAGE,
+        PARK,
+
+        DONE
+    }
+
+    private @NotNull State state = State.INIT;
+
+    public void runOneStepTopLevelStateMachine() {
+        Objects.requireNonNull(drive);
+        Objects.requireNonNull(visionPortal);
+
+        // See auton psuedocode https://docs.google.com/document/d/1lLHZNmnYf7C67mSHjxOZpvPCSCouX_pffa1dQ7LE-PQ/edit
+        // We can disable/enable proccessors as needed to save CPU cycles
+
+        switch (state) {
+            case FIND_TSE:
+                if (!visionPortal.getProcessorEnabled(tseProcessor)) {
+                    visionPortal.setProcessorEnabled(tseProcessor, true); // wait for TSE to be found
+                }
+                if (tseProcessor.getTeamScoringElementLocation() != null) {
+                    visionPortal.setProcessorEnabled(tseProcessor, false); // done using, save cycles
+                    state = State.PLACE_PURPLE_PIXEL__MOVE_INTO_POSITION;
+                }
+                break;
+            case PLACE_PURPLE_PIXEL__MOVE_INTO_POSITION:
+                assert tseProcessor.getTeamScoringElementLocation() != null;
+                // TODO: move in front of spike strip in question
+                state = State.PLACE_PURPLE_PIXEL__DEPOSIT_PIXEL;
+                break;
+            case PLACE_PURPLE_PIXEL__DEPOSIT_PIXEL:
+                // TODO: run intake in reverse to deposit pixel
+                state = State.PLACE_YELLOW_PIXEL__MOVE_INTO_POSITION_FOR_FINDING_TAG;
+                break;
+            case PLACE_YELLOW_PIXEL__MOVE_INTO_POSITION_FOR_FINDING_TAG:
+                // TODO: move to a place in front of the backboard
+                state = State.PLACE_YELLOW_PIXEL__SCAN_APRILTAG_AFFIRM_POSE;
+                break;
+            case PLACE_YELLOW_PIXEL__SCAN_APRILTAG_AFFIRM_POSE:
+                if (!visionPortal.getProcessorEnabled(aprilTag)) {
+                    visionPortal.setProcessorEnabled(aprilTag, true); // wait for apriltag(s) to be found
+                }
+                // TODO: wait for the apriltag to be found, and then update the pose estimate in the drive
+                // TODO: this could be unnecessary? see if we desync too much w/ fully calibrated RR
+                if (true) { // when updated
+                    if (visionPortal.getProcessorEnabled(aprilTag)) {
+                        visionPortal.setProcessorEnabled(aprilTag, false); // done using, save cycles
+                    }
+                    state = State.PLACE_YELLOW_PIXEL__MOVE_ONTO_BACKBOARD;
+                }
+                break;
+            case PLACE_YELLOW_PIXEL__MOVE_ONTO_BACKBOARD:
+                // TODO: move into a position with the back of the robot against the backboard so we can slide up & deposit
+                state = State.PLACE_YELLOW_PIXEL__SLIDE_UP;
+                break;
+            case PLACE_YELLOW_PIXEL__SLIDE_UP:
+                // TODO: move the slides up about halfway
+                state = State.PLACE_YELLOW_PIXEL__DEPOSIT;
+                break;
+            case PLACE_YELLOW_PIXEL__DEPOSIT:
+                // TODO: move the basket wheels backwards to deposit the pixel
+                state = State.CYCLE__MOVE_TO_SAFE_STARTING_SPOT;
+                break;
+            case CYCLE__MOVE_TO_SAFE_STARTING_SPOT:
+                // TODO: give the backboard and other robots a large berth before beginning to cycle
+                state = State.CYCLE;
+                break;
+            case CYCLE:
+                if (opModeStartTime + SAFE_CYCLING_TIME < getRuntime()) {
+                    // it isn't safe to cycle anymore, time to park
+                    state = State.PARK__NEUTRAL_POSITION;
+                }
+                runOneStepCyclingStateMachine();
+                if (state != State.CYCLE && visionPortal.getProcessorEnabled(tfod)) {
+                    visionPortal.setProcessorEnabled(tfod, false); // done using, save cycles
+                }
+                break;
+            case PARK__NEUTRAL_POSITION:
+                // TODO: move to a neutral position with room to move
+                state = State.PARK__NEUTRAL_POSITION_BACKSTAGE;
+                break;
+            case PARK__NEUTRAL_POSITION_BACKSTAGE:
+                // TODO: we may already be in front of the backboard, but if we are frontstage we should spline over
+                state = State.PARK;
+                break;
+            case PARK:
+                // TODO: Park on the line backstage
+                state = State.DONE;
+                break;
+        }
+    }
+
+    public void runOneStepBackgroundTasks() {
+        telemetry.update();
+        multipleTelemetry.update();
+
+        Objects.requireNonNull(drive).update();
+        // if we ever add PID for the slides, it would go here too, but we don't have encoders on the sides right now
+
+        multipleTelemetry.addData("State", state);
+        multipleTelemetry.addData("Cycling Substate", cyclingSubState);
+    }
+
+    double opModeStartTime = 0.0;
+
+    // https://learnroadrunner.com/advanced.html#finite-state-machine-following
     @Override
     public void runOpMode() throws InterruptedException {
+        state = State.INIT;
         initDrive();
         initVision();
 
         waitForStart();
-        final double opModeStartTime = getRuntime(); // the attribute startTime is actually the init time
+        opModeStartTime = getRuntime(); // the attribute startTime is actually the init time
+        state = State.FIND_TSE;
+
         while (!isStopRequested()) {
-            idle(); // thread will yield whenever continue is called (0 second sleep)
-            Objects.requireNonNull(drive).update();
-            Objects.requireNonNull(visionPortal); // for type hinting
-            telemetry.update();
-            multipleTelemetry.update();
-
-            if (opModeStartTime + AUTONOMOUS_PERIOD_LENGTH_SECONDS < getRuntime()) {
-                break; // break out of loop if we are out of time; get ready to assume teleop
+            runOneStepBackgroundTasks();
+            runOneStepTopLevelStateMachine();
+            if (state == State.DONE) {
+                break;
             }
-
-            // See auton psuedocode https://docs.google.com/document/d/1lLHZNmnYf7C67mSHjxOZpvPCSCouX_pffa1dQ7LE-PQ/edit
-            // We can disable/enable proccessors as needed to save CPU cycles
-
-            // after we reach each "checkpoint," the loop should be continued
-            // loop can be broken after we are done with our auton and ready to assume teleop
-
-            // first actions in auton (first 10 seconds)
-            if (tseProcessor.getTeamScoringElementLocation() == null) {
-                visionPortal.setProcessorEnabled(tseProcessor, true); // wait for TSE to be found
-                continue; // don't move from starting position until we know where the TSE is
-            } else {
-                multipleTelemetry.addData("TSE Location", tseProcessor.getTeamScoringElementLocation().name());
-                visionPortal.setProcessorEnabled(tseProcessor, false); // done using, save cycles
-            }
-
-            // TODO: Place purple pixel on TSE spike strip
-
-            // TODO: Place yellow pixel on backboard according to TSE location
-            // -- TODO: move robot into position where it can see apriltags on backboard
-            // -- TODO: enable apriltag processor
-            // -- TODO: wait to find apriltag
-            // -- TODO: place apriltag
-
-            // cycling: for remainder of time until time to park
-            if (opModeStartTime + SAFE_CYCLING_TIME > getRuntime()) {
-                // TODO: 3 points for backstage pixels 5 for backboard pixels, just white ones from stacks
-                // will need to use a state machine to track this,
-                // also input shaping to get bot back on track if it is crashed into
-                continue;
-            }
-
-            // TODO: Park in backstage then break loop
-            // depending on current position of bot, follow different paths to park
-            break;
+            Thread.yield(); // don't hog resources; allow other threads to run like the vision thread(s)
         }
 
         cleanup(); // no need to autoclose the drive nor vision, easier w/ 2 objects
