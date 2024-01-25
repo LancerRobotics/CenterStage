@@ -1,19 +1,19 @@
 package org.firstinspires.ftc.teamcode.lancers.teleop;
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.lancers.config.Constants;
 import org.firstinspires.ftc.teamcode.lancers.config.LancersBotConfig;
 import org.firstinspires.ftc.teamcode.lancers.util.LancersMecanumDrive;
+import org.firstinspires.ftc.teamcode.lancers.util.LancersOpMode;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 // https://learnroadrunner.com/advanced.html#using-road-runner-in-teleop if roadrunner needed
 @TeleOp(name = Constants.TELEOP_NAME)
-public final class LancersTeleOp extends LinearOpMode {
+public final class LancersTeleOp extends LancersOpMode {
     // Loop Tasks
 
     /**
@@ -69,20 +69,12 @@ public final class LancersTeleOp extends LinearOpMode {
         }
     }
 
-    private static final double MAX_SINGLE_SLIDER_SPEED = 0.3d;
-    private static final double MAX_SLIDER_SPEED = 0.6d;
-
-    // TODO: Eventually break this out to it's own class along with intake & outtake for sharing code between auton and teleop
-    // see ek's subsystems
     public void sliderMovement(final @NotNull Gamepad gamepad) {
         // right trigger: expand
         // left trigger: contract
 
         // if left bumper is pressed, move only left slider and do so at 0.3 speed
         // if right bumper is pressed, move only right slider and do so at 0.3 speed
-
-        final @NotNull DcMotor leftSlider = hardwareMap.dcMotor.get(LancersBotConfig.LEFT_SLIDE_MOTOR);
-        final @NotNull DcMotor rightSlider = hardwareMap.dcMotor.get(LancersBotConfig.RIGHT_SLIDE_MOTOR);
 
         double sliderPower = 0.0d;
         if (gamepad.right_trigger > ControlUtil.TRIGGER_THRESHOLD) {
@@ -91,80 +83,46 @@ public final class LancersTeleOp extends LinearOpMode {
             sliderPower = -ControlUtil.adjustTriggerMovement(gamepad.left_trigger);
         }
 
-        double leftSliderPower = sliderPower * MAX_SLIDER_SPEED;
-        double rightSliderPower = -leftSliderPower;
-
+        final boolean useLeft;
+        final boolean useRight;
         if (gamepad.right_bumper) {
-            leftSliderPower = 0.0d;
-            rightSliderPower = sliderPower * MAX_SINGLE_SLIDER_SPEED;
+            useLeft = false;
+            useRight = true;
         } else if (gamepad.left_bumper) {
-            leftSliderPower = sliderPower * MAX_SINGLE_SLIDER_SPEED;
-            rightSliderPower = 0.0d;
+            useLeft = true;
+            useRight = false;
+        } else {
+            useLeft = true;
+            useRight = true;
         }
 
-        leftSlider.setPower(leftSliderPower);
-        rightSlider.setPower(rightSliderPower);
+        Objects.requireNonNull(robot).doSliderMovement(sliderPower, useLeft, useRight);
     }
 
-    // TODO: move
     public void outtakeLinearMovement(final @NotNull Gamepad gamepad) {
         // Right stick y
-        final @NotNull CRServo backOuttake = hardwareMap.crservo.get(LancersBotConfig.BACK_OUTTAKE_SERVO);
-        final @NotNull CRServo frontOuttake = hardwareMap.crservo.get(LancersBotConfig.FRONT_OUTTAKE_SERVO);
-
-        final float backOuttakePower = gamepad.right_stick_y;
-        final float frontOuttakePower = -backOuttakePower;
-
-        backOuttake.setPower(backOuttakePower);
-        frontOuttake.setPower(frontOuttakePower);
-    }
-
-    private static final double LEFT_SERVO_HORIZONTAL_POSITION = 0.54d;
-    private static final double LEFT_SERVO_VERTICAL_POSITION = 0.83d;
-    private static final double RIGHT_SERVO_HORIZONTAL_POSITION = 1.0d - LEFT_SERVO_HORIZONTAL_POSITION;
-    private static final double RIGHT_SERVO_VERTICAL_POSITION = 1.0d - LEFT_SERVO_VERTICAL_POSITION;
-
-    // TODO: move
-    public void initOuttakeBasket() {
-        final @NotNull Servo leftOuttake = hardwareMap.servo.get(LancersBotConfig.LEFT_OUTTAKE_SERVO);
-        final @NotNull Servo rightOuttake = hardwareMap.servo.get(LancersBotConfig.RIGHT_OUTTAKE_SERVO);
-        leftOuttake.setPosition(LEFT_SERVO_HORIZONTAL_POSITION);
-        rightOuttake.setPosition(RIGHT_SERVO_HORIZONTAL_POSITION);
+        Objects.requireNonNull(robot).setOuttakeWheelSpeed(gamepad.right_stick_y);
     }
 
     private static final double MAX_BASKET_ANGULAR_SPEED_MULTIPLIER = 0.01d;
 
-    // TODO: move
     public void outtakeAngularMovement(final @NotNull Gamepad gamepad) {
-        // Left stick y
-        // Setup button to set servos to a special angle
-        final @NotNull Servo leftOuttake = hardwareMap.servo.get(LancersBotConfig.LEFT_OUTTAKE_SERVO);
-        final @NotNull Servo rightOuttake = hardwareMap.servo.get(LancersBotConfig.RIGHT_OUTTAKE_SERVO);
+        Objects.requireNonNull(robot);
 
+        // Left stick y
         if (gamepad.b) {
             // Set to horizontal position
-            leftOuttake.setPosition(LEFT_SERVO_HORIZONTAL_POSITION);
-            rightOuttake.setPosition(RIGHT_SERVO_HORIZONTAL_POSITION);
+            robot.bringOuttakeHorizontal();
         } else if (gamepad.a) {
             // Set to vertical position
-            leftOuttake.setPosition(LEFT_SERVO_VERTICAL_POSITION);
-            rightOuttake.setPosition(RIGHT_SERVO_VERTICAL_POSITION);
+            robot.bringOuttakeVertical();
         } else {
-            final double currentLeftPos = leftOuttake.getPosition();
-            double targetLeftPos = currentLeftPos + (gamepad.left_stick_y * MAX_BASKET_ANGULAR_SPEED_MULTIPLIER);
+            final double displacement = gamepad.left_stick_y * MAX_BASKET_ANGULAR_SPEED_MULTIPLIER;
+            final double targetPosition = robot.getOutakePosition() + displacement;
+            robot.setOuttakePosition(targetPosition);
 
             // Make sure targetLeftPos is in range for servo
-            if (targetLeftPos > 0.9d) {
-                targetLeftPos = 0.9d;
-            } else if (targetLeftPos < 0.1d) {
-                targetLeftPos = 0.1d;
-            }
-
-            final double targetRightPos = 1 - targetLeftPos;
-
-            leftOuttake.setPosition(targetLeftPos);
-            rightOuttake.setPosition(targetRightPos);
-            telemetry.addData("Left outtake servo position", targetLeftPos);
+            telemetry.addData("Outtake position", targetPosition);
         }
     }
 
@@ -176,8 +134,8 @@ public final class LancersTeleOp extends LinearOpMode {
         // NOTE: If an auton didn't run or if the global state in the drive persisted, the pose data may be incorrect.
         //       This can be fixed by running an auton that requires the bot be in a specific starting positon
         //       (e.g. one of the parking autons or the full auton) (this only matters for launching the drone)
-        try (final LancersMecanumDrive drive = new LancersMecanumDrive(hardwareMap)) {
-            initOuttakeBasket();
+        try (final @NotNull LancersMecanumDrive drive = new LancersMecanumDrive(hardwareMap)) {
+            initCommon();
 
             waitForStart();
 
@@ -186,15 +144,11 @@ public final class LancersTeleOp extends LinearOpMode {
             while (opModeIsActive()) {
                 drive.update(); // sends trajectory data to dashboard
 
-                telemetry.addData("x", drive.getPoseEstimate().getX());
-                telemetry.addData("y", drive.getPoseEstimate().getY());
-                telemetry.addData("heading (deg)", Math.toDegrees(drive.getPoseEstimate().getHeading()));
-
                 // Gamepad 1 / Movement
                 mecanumMovement(gamepad1);
                 intakeMovement(gamepad1);
 
-                // Gamepad 2
+                // Gamepad 2 / Scoring
                 sliderMovement(gamepad2);
                 outtakeLinearMovement(gamepad2);
                 outtakeAngularMovement(gamepad2);

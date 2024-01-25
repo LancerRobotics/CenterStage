@@ -9,6 +9,7 @@ import org.firstinspires.ftc.teamcode.lancers.auton.StartPosition;
 import org.firstinspires.ftc.teamcode.lancers.config.LancersBotConfig;
 import org.firstinspires.ftc.teamcode.lancers.util.LancersMecanumDrive;
 import org.firstinspires.ftc.teamcode.lancers.vision.pipeline.TeamScoringElementPipeline;
+import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequenceBuilder;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -23,10 +24,6 @@ import java.util.Objects;
  * Implements {@link org.firstinspires.ftc.robotcontroller.external.samples.ConceptDoubleVision} & uses {@link LancersMecanumDrive}
  */
 public class FullAutonOpMode extends LancersAutonOpMode {
-    private static final int AUTONOMOUS_PERIOD_LENGTH_SECONDS = 30;
-    private static final int TIME_TO_PARK_SECONDS = 10;
-    private static final int SAFE_CYCLING_TIME = AUTONOMOUS_PERIOD_LENGTH_SECONDS - TIME_TO_PARK_SECONDS;
-
     private @Nullable LancersMecanumDrive drive = null;
 
     public FullAutonOpMode(@NotNull StartPosition startPosition) {
@@ -129,6 +126,119 @@ public class FullAutonOpMode extends LancersAutonOpMode {
         }
     }
 
+    public @NotNull TrajectorySequence getTrajectorySequence(final @NotNull StartPosition.TeamScoringElementLocation teamScoringElementLocation) {
+        // we can't run this trajectory right away because we need to wait for the tse to be discovered
+        Objects.requireNonNull(drive);
+        Objects.requireNonNull(robot);
+
+        final @NotNull TrajectorySequenceBuilder builder = drive.trajectorySequenceBuilder(drive.getPoseEstimate());
+        // move into position to put down the pixel
+
+        builder.forward(2.0d); // give wall some space
+        switch (teamScoringElementLocation) {
+            case CENTER:
+                switch (startPosition) {
+                    case RED_FRONT_STAGE:
+                        builder.splineTo(new Vector2d(-43.63, -35.15), Math.toRadians(90));
+                        break;
+                    case RED_BACK_STAGE:
+                        builder.splineTo(new Vector2d(17.24, -35.39), Math.toRadians(90.00));
+                        break;
+                    case BLUE_FRONT_STAGE:
+                        builder.splineTo(new Vector2d(-43.93, 35.31), Math.toRadians(270.00));
+                        break;
+                    case BLUE_BACK_STAGE:
+                        builder.splineTo(new Vector2d(17.24, 35.39), Math.toRadians(270.00));
+                        break;
+                }
+                break;
+            case LEFT:
+                builder.turn(Math.toRadians(90.0d)); // counter-clockwise
+                builder.strafeRight(22.0d);
+                break;
+            case RIGHT:
+                builder.turn(Math.toRadians(-90.0d)); // clockwise
+                builder.strafeLeft(22.0d);
+                break;
+        }
+
+        // drop the pixel
+        final @NotNull DcMotor intake = hardwareMap.get(DcMotor.class, LancersBotConfig.INTAKE_MOTOR);
+        final double intakePower;
+        switch (teamScoringElementLocation) {
+            case LEFT:
+            case RIGHT:
+                intakePower = -0.6d;
+                break;
+            case CENTER:
+            default:
+                intakePower = -0.3d;
+                break;
+        }
+        builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
+            intake.setPower(intakePower);
+        });
+        builder.waitSeconds(0.5);
+        builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
+            intake.setPower(0);
+        });
+
+        // move onto board with back facing backboard
+        // TODO
+
+        // slides up
+        builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
+            robot.doSliderMovement(1.0d);
+        });
+        builder.waitSeconds(1.5);
+        builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
+            robot.doSliderMovement(0.0d);
+        });
+
+        // rotate basket up
+        builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
+            robot.bringOuttakeVertical();
+        });
+        builder.waitSeconds(1.0d);
+
+        // deposit pixel
+        builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
+            robot.setOuttakeWheelSpeed(-1.0f);
+        });
+        builder.waitSeconds(1.5d);
+        builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
+            robot.setOuttakeWheelSpeed(0.0f);
+        });
+
+        // rotate basket down
+        builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
+            robot.bringOuttakeHorizontal();
+        });
+        builder.waitSeconds(1.0d);
+
+        // slides down
+        builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
+            robot.doSliderMovement(-1.0d);
+        });
+        builder.waitSeconds(1.5);
+        builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
+            robot.doSliderMovement(0.0d);
+        });
+
+        // park
+        // TODO
+
+        // we are done
+        builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
+            synchronized (stateMachineLock) {
+                switchStateTo(State.DONE);
+            }
+        });
+
+        return builder.build();
+    }
+
+
     private enum State {
         INIT,
 
@@ -151,73 +261,11 @@ public class FullAutonOpMode extends LancersAutonOpMode {
                 break;
             case TRAJECTORY:
                 assert tseProcessor.getTeamScoringElementLocation() != null;
-                final @NotNull TrajectorySequenceBuilder builder = drive.trajectorySequenceBuilder(drive.getPoseEstimate());
-                // move into position to put down the pixel
-
-                builder.forward(2.0d); // give board board some space
-                switch (tseProcessor.getTeamScoringElementLocation()) {
-                    case CENTER:
-                        switch (startPosition) {
-                            case RED_FRONT_STAGE:
-                                builder.splineTo(new Vector2d(-43.63, -35.15), Math.toRadians(90));
-                                break;
-                            case RED_BACK_STAGE:
-                                builder.splineTo(new Vector2d(17.24, -35.39), Math.toRadians(90.00));
-                                break;
-                            case BLUE_FRONT_STAGE:
-                                builder.splineTo(new Vector2d(-43.93, 35.31), Math.toRadians(270.00));
-                                break;
-                            case BLUE_BACK_STAGE:
-                                builder.splineTo(new Vector2d(17.24, 35.39), Math.toRadians(270.00));
-                                break;
-                        }
-                        break;
-                    case LEFT:
-                        builder.turn(Math.toRadians(90.0d)); // counter-clockwise
-                        builder.strafeRight(22.0d); // TODO: find correct distance
-                        break;
-                    case RIGHT:
-                        builder.turn(Math.toRadians(-90.0d)); // clockwise
-                        builder.strafeLeft(22.0d); // TODO: find correct distance
-                        break;
-                }
-
-                // drop the pixel
-                final @NotNull DcMotor intake = hardwareMap.get(DcMotor.class, LancersBotConfig.INTAKE_MOTOR);
-                final double intakePower;
-                switch (tseProcessor.getTeamScoringElementLocation()) {
-                    case LEFT:
-                    case RIGHT:
-                        intakePower = -0.6d;
-                        break;
-                    case CENTER:
-                    default:
-                        intakePower = -0.3d;
-                        break;
-                }
-                builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
-                    intake.setPower(intakePower);
-                });
-                builder.waitSeconds(0.5);
-                builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
-                    intake.setPower(0);
-                });
-
-
-                // yellow pixel on board
-                // TODO
-
-                // park
-                // TODO
-
-                // we are done
-                builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
-                    synchronized (stateMachineLock) {
-                        switchStateTo(State.DONE);
-                    }
-                });
-
-                drive.followTrajectorySequenceAsync(builder.build());
+                final @NotNull TrajectorySequence trajectorySequence = getTrajectorySequence(tseProcessor.getTeamScoringElementLocation());
+                drive.followTrajectorySequenceAsync(trajectorySequence);
+                break;
+            case DONE:
+                this.requestOpModeStop();
                 break;
         }
     }
@@ -247,7 +295,7 @@ public class FullAutonOpMode extends LancersAutonOpMode {
                     break;
                 case TRAJECTORY:
                     if (drive.isBusy()) {
-                        // trajectory is running
+                        // trajectory is running, let's just wait for it to conclude
                         break;
                     }
             }
@@ -272,8 +320,8 @@ public class FullAutonOpMode extends LancersAutonOpMode {
     public void runOpMode() throws InterruptedException {
         initDrive();
         initVision();
+        initCommon();
         opModeStartTime = getRuntime(); // the attribute startTime is actually the init time
-        switchStateTo(State.INIT);
 
         waitForStart();
         switchStateTo(State.FIND_TSE);
@@ -284,9 +332,6 @@ public class FullAutonOpMode extends LancersAutonOpMode {
                 Thread.yield(); // don't hog resources; allow other threads to run like the vision thread(s)
                 runOneStepBackgroundTasks();
                 runStateMachine();
-                if (state == State.DONE) {
-                    break;
-                }
             }
         } finally {
             cleanup(); // no need to autoclose the drive nor vision, easier w/ 2 objects

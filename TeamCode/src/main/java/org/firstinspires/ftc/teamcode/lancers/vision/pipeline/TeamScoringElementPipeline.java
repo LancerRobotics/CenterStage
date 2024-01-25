@@ -150,7 +150,8 @@ public class TeamScoringElementPipeline implements VisionProcessor { // aka pipe
 
     private @Nullable StartPosition.TeamScoringElementLocation lastKnownLocation = null;
 
-    private static final long FRAMES_SINCE_LAST_KNOWN_LOCATION_THRESHOLD = 3;
+    private static final long FRAMES_SINCE_LAST_KNOWN_LOCATION_THRESHOLD = 2;
+    // make sure we detect the same thing twice, so that it isn't a fluke
     private long framesSinceLastKnownLocation = 0;
 
     @Contract(pure = false) // there is a side effect
@@ -274,7 +275,7 @@ public class TeamScoringElementPipeline implements VisionProcessor { // aka pipe
 
     private enum ColorSpace {
         RGB, // known good
-        HSV; // known good
+        HSV // known good
     }
 
     @Data
