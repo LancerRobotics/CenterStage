@@ -62,7 +62,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     private final List<Integer> lastEncPositions = new ArrayList<>();
     private final List<Integer> lastEncVels = new ArrayList<>();
 
-    public static final double FOLLOWER_TIMEOUT = 1.5d;
+    public static final double FOLLOWER_TIMEOUT = 1.0d;
     public static final double FOLLOWER_X_ALLOWABLE = 0.25d;
     public static final double FOLLOWER_Y_ALLOWABLE = 0.25d;
     public static final double FOLLOWER_RADIANS_ALLOWABLE = Math.toRadians(2.5);

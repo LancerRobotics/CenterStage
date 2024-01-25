@@ -54,18 +54,18 @@ public final class LancersTeleOp extends LancersOpMode {
     }
 
     public void intakeMovement(final @NotNull Gamepad gamepad) {
-        final @NotNull DcMotor intakeMotor = hardwareMap.dcMotor.get(LancersBotConfig.INTAKE_MOTOR);
+        Objects.requireNonNull(robot);
 
         final double speedMultiplier = gamepad.b ? 1.0 : 0.8;
 
         if (gamepad.right_trigger > ControlUtil.TRIGGER_THRESHOLD) {
-            intakeMotor.setPower(ControlUtil.adjustTriggerMovement(gamepad.right_trigger) * speedMultiplier);
+            robot.doIntakeMovement(ControlUtil.adjustTriggerMovement(gamepad.right_trigger) * speedMultiplier);
         } else if (gamepad.left_trigger > ControlUtil.TRIGGER_THRESHOLD) {
             // for placing pixels forward/unsticking
             // divided by 2 to give finer control than SUCKING IN pixels
-            intakeMotor.setPower(-ControlUtil.adjustTriggerMovement(gamepad.left_trigger) / 2.0d);
+            robot.doIntakeMovement(-ControlUtil.adjustTriggerMovement(gamepad.left_trigger) / 2.0d);
         } else {
-            intakeMotor.setPower(0.0d);
+            robot.doIntakeMovement(0.0d);
         }
     }
 

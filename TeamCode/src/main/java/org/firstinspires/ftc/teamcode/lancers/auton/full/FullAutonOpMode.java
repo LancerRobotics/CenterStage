@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.lancers.auton.full;
 
 import android.util.Size;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.lancers.LancersBotConfig;
 import org.firstinspires.ftc.teamcode.lancers.auton.LancersAutonOpMode;
@@ -18,6 +18,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+
+import static org.firstinspires.ftc.teamcode.lancers.auton.AllianceColor.BLUE;
 
 /**
  * Holds common code shared between different auton modes.
@@ -134,99 +136,193 @@ public class FullAutonOpMode extends LancersAutonOpMode {
         final @NotNull TrajectorySequenceBuilder builder = drive.trajectorySequenceBuilder(drive.getPoseEstimate());
         // move into position to put down the pixel
 
-        builder.forward(2.0d); // give wall some space
+        // helper constants for reusing trajectory code
+        final double faceInDeg = startPosition.getAllianceColor() == BLUE ? -90.0d : 90.0d;
+        final double faceOutDeg = startPosition.getAllianceColor() == BLUE ? 90.0d : -90.0d;
+        final double faceBoardDeg = 0.0d;
+        final double faceDroneFieldDeg = 180.0d;
+        final double flipY = startPosition.getAllianceColor() == BLUE ? -1 : 1; // turns red to blue
+
+        builder.lineToConstantHeading(startPosition.getSafeMovementPose().vec());
         switch (teamScoringElementLocation) {
             case CENTER:
                 switch (startPosition) {
                     case RED_FRONT_STAGE:
-                        builder.splineTo(new Vector2d(-43.63, -35.15), Math.toRadians(90));
+                    case BLUE_FRONT_STAGE:
+                        builder.splineTo(new Vector2d(-43.63, -35.35 * flipY), Math.toRadians(faceInDeg));
                         break;
                     case RED_BACK_STAGE:
-                        builder.splineTo(new Vector2d(17.24, -35.39), Math.toRadians(90.00));
-                        break;
-                    case BLUE_FRONT_STAGE:
-                        builder.splineTo(new Vector2d(-43.93, 35.31), Math.toRadians(270.00));
-                        break;
                     case BLUE_BACK_STAGE:
-                        builder.splineTo(new Vector2d(17.24, 35.39), Math.toRadians(270.00));
+                        builder.splineTo(new Vector2d(17.24, -35.89 * flipY), Math.toRadians(faceInDeg));
                         break;
                 }
                 break;
             case LEFT:
-                builder.turn(Math.toRadians(90.0d)); // counter-clockwise
-                builder.strafeRight(22.0d);
+                builder.turn(Math.toRadians(90.0d)) // counter-clockwise
+                        .strafeRight(22.0d);
                 break;
             case RIGHT:
-                builder.turn(Math.toRadians(-90.0d)); // clockwise
-                builder.strafeLeft(22.0d);
+                builder.turn(Math.toRadians(-90.0d)) // clockwise
+                        .strafeLeft(22.0d);
                 break;
         }
 
         // drop the pixel
-        final @NotNull DcMotor intake = hardwareMap.get(DcMotor.class, LancersBotConfig.INTAKE_MOTOR);
-        final double intakePower;
-        switch (teamScoringElementLocation) {
-            case LEFT:
-            case RIGHT:
-                intakePower = -0.6d;
+        final double INTAKE_RUNTIME = 0.6d;
+        final double INTAKE_POWER = 0.55d;
+        builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
+            robot.doIntakeMovement(-INTAKE_POWER);
+        });
+        builder.UNSTABLE_addTemporalMarkerOffset(INTAKE_RUNTIME, () -> {
+            robot.doIntakeMovement(0.0d);
+        });
+        builder.waitSeconds(INTAKE_RUNTIME);
+
+        // back facing backwards
+        if (teamScoringElementLocation != StartPosition.TeamScoringElementLocation.CENTER) {
+            // we need to avoid clipping truss
+            final boolean isFacingTruss;
+            switch (startPosition) {
+                case BLUE_FRONT_STAGE:
+                case RED_BACK_STAGE:
+                    isFacingTruss = teamScoringElementLocation == StartPosition.TeamScoringElementLocation.LEFT;
+                    break;
+                case RED_FRONT_STAGE:
+                case BLUE_BACK_STAGE:
+                default:
+                    isFacingTruss = teamScoringElementLocation == StartPosition.TeamScoringElementLocation.RIGHT;
+            }
+            if (isFacingTruss) {
+                builder.back(2.0d);
+            } else {
+                builder.forward(1.0d);
+            }
+        }
+
+        // get backstage
+        switch (startPosition.getStagePosition()) {
+            case BACK:
+                builder.lineToConstantHeading(startPosition.getSafeMovementPose().vec());
+                // we will need to turn to face infield
+                // opposite of previous switch
+                switch (teamScoringElementLocation) {
+                    case RIGHT:
+                        builder.turn(Math.toRadians(90.0d)); // counter-clockwise
+                        break;
+                    case LEFT:
+                        builder.turn(Math.toRadians(-90.0d)); // clockwise
+                        break;
+                }
+                switch (startPosition.getAllianceColor()) {
+                    case BLUE:
+                        builder.strafeLeft(7.0d);
+                        break;
+                    case RED:
+                        builder.strafeRight(7.0d);
+                        break;
+                }
+                builder.splineTo(new Vector2d(37.07, -36.76 * flipY), Math.toRadians(faceInDeg));
                 break;
-            case CENTER:
-            default:
-                intakePower = -0.3d;
+            case FRONT:
+                builder
+                        .lineToSplineHeading(startPosition.getSafeMovementPose())
+                        .lineToSplineHeading(new Pose2d(-58.52, -60.71 * flipY, Math.toRadians(faceInDeg)))
+                        .lineToConstantHeading(new Vector2d(-58.52, -12.97 * flipY)) // go forward
+                        .turn(Math.toRadians(startPosition.getAllianceColor() == BLUE ? 90 : -90)) // can't spline here
+                        .lineToConstantHeading(new Vector2d(34.47, -12.81 * flipY));
                 break;
         }
-        builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
-            intake.setPower(intakePower);
-        });
-        builder.waitSeconds(0.5);
-        builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
-            intake.setPower(0);
-        });
 
-        // move onto board with back facing backboard
-        // TODO
-
-        // slides up
+        // align onto backboard while bringing slides up
+        final double SLIDER_RUNTIME = 0.6d;
+        // note: do not move basket while sliders are up until they are screwed in
         builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
             robot.doSliderMovement(1.0d);
         });
-        builder.waitSeconds(1.5);
-        builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
-            robot.doSliderMovement(0.0d);
-        });
-
-        // rotate basket up
-        builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
+        builder.UNSTABLE_addTemporalMarkerOffset(0.3, () -> {
             robot.bringOuttakeVertical();
         });
-        builder.waitSeconds(1.0d);
-
-        // deposit pixel
-        builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
-            robot.setOuttakeWheelSpeed(-1.0f);
+        builder.UNSTABLE_addTemporalMarkerOffset(SLIDER_RUNTIME, () -> {
+            robot.doSliderMovement(0.0d);
         });
-        builder.waitSeconds(1.5d);
+        builder.waitSeconds(1.3d); // wait for dog ears to settle
+
+        // line up onto board
+        final double BOARD_X = 50.04d;
+        final double OUTERMOST_SLOT_Y = -42.47;
+        final double CENTERMOST_SLOT_Y = -36.57;
+        final double INNERMOST_SLOT_Y = -29.21;
+        // if we are blue, outermost is left
+        // if we are red, outermost is right
+
+        final double boardY;
+        switch (teamScoringElementLocation) {
+            case LEFT:
+                switch (startPosition.getAllianceColor()) {
+                    case BLUE:
+                        boardY = OUTERMOST_SLOT_Y;
+                        break;
+                    default: // exhaustive
+                    case RED:
+                        boardY = INNERMOST_SLOT_Y;
+                        break;
+                }
+                break;
+            case RIGHT:
+                switch (startPosition.getAllianceColor()) {
+                    case BLUE:
+                        boardY = INNERMOST_SLOT_Y;
+                        break;
+                    default: // exhaustive
+                    case RED:
+                        boardY = OUTERMOST_SLOT_Y;
+                        break;
+                }
+                break;
+            default: // exhaustive
+            case CENTER:
+                boardY = CENTERMOST_SLOT_Y;
+                break;
+        }
+
+        builder.lineToSplineHeading(new Pose2d(BOARD_X, boardY * flipY, Math.toRadians(faceDroneFieldDeg)));
+
+        // drop out pixel (by now we should be on back)
         builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
+            robot.setOuttakeWheelSpeed(1.0f);
+        });
+        builder.UNSTABLE_addTemporalMarkerOffset(1.5, () -> {
             robot.setOuttakeWheelSpeed(0.0f);
         });
+        builder.waitSeconds(1.0); // don't wait forever
 
-        // rotate basket down
+        // move forward about 3 inches to bring slides down
+        builder.forward(4.0d);
+
+        // slides down
+        // avoid automatically bring basket horizontal
         builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
             robot.bringOuttakeHorizontal();
         });
-        builder.waitSeconds(1.0d);
-
-        // slides down
-        builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
+        builder.UNSTABLE_addTemporalMarkerOffset(0.5, () -> {
             robot.doSliderMovement(-1.0d);
         });
-        builder.waitSeconds(1.5);
-        builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
+        builder.UNSTABLE_addTemporalMarkerOffset(0.5 + SLIDER_RUNTIME, () -> {
             robot.doSliderMovement(0.0d);
         });
 
         // park
-        // TODO
+        builder.forward(3.0d); // clear off board to avoid descoring
+        switch (startPosition) {
+            case RED_FRONT_STAGE:
+            case BLUE_FRONT_STAGE:
+                builder.splineTo(new Vector2d(57.51, -12.51 * flipY), Math.toRadians(faceBoardDeg));
+                break;
+            case RED_BACK_STAGE:
+            case BLUE_BACK_STAGE:
+                builder.splineTo(new Vector2d(58.12, -61.02 * flipY), Math.toRadians(faceBoardDeg));
+                break;
+        }
 
         // we are done
         builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {

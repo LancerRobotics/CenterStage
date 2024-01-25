@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.lancers;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.jetbrains.annotations.NotNull;
 
+@Config
 public class LancersRobot {
     final @NotNull HardwareMap hardwareMap;
 
@@ -15,31 +17,20 @@ public class LancersRobot {
 
     // outtake basket
 
-    private static final double LEFT_SERVO_HORIZONTAL_POSITION = 0.54d;
-    private static final double RIGHT_SERVO_HORIZONTAL_POSITION = 1.0d - LEFT_SERVO_HORIZONTAL_POSITION;
+    private static final double SERVO_HORIZONTAL_POSITION = 0.54d;
 
-    private static final double LEFT_SERVO_VERTICAL_POSITION = 0.83d;
-    private static final double RIGHT_SERVO_VERTICAL_POSITION = 1.0d - LEFT_SERVO_VERTICAL_POSITION;
+    private static final double SERVO_VERTICAL_POSITION = 0.83d;
 
     public void initOuttakeBasket() {
-        final @NotNull Servo leftOuttake = hardwareMap.servo.get(LancersBotConfig.LEFT_OUTTAKE_SERVO);
-        final @NotNull Servo rightOuttake = hardwareMap.servo.get(LancersBotConfig.RIGHT_OUTTAKE_SERVO);
-        leftOuttake.setPosition(LEFT_SERVO_HORIZONTAL_POSITION);
-        rightOuttake.setPosition(RIGHT_SERVO_HORIZONTAL_POSITION);
+        bringOuttakeHorizontal();
     }
 
     public void bringOuttakeHorizontal() {
-        final @NotNull Servo leftOuttake = hardwareMap.servo.get(LancersBotConfig.LEFT_OUTTAKE_SERVO);
-        final @NotNull Servo rightOuttake = hardwareMap.servo.get(LancersBotConfig.RIGHT_OUTTAKE_SERVO);
-        leftOuttake.setPosition(LEFT_SERVO_HORIZONTAL_POSITION);
-        rightOuttake.setPosition(RIGHT_SERVO_HORIZONTAL_POSITION);
+        setOuttakePosition(SERVO_HORIZONTAL_POSITION);
     }
 
     public void bringOuttakeVertical() {
-        final @NotNull Servo leftOuttake = hardwareMap.servo.get(LancersBotConfig.LEFT_OUTTAKE_SERVO);
-        final @NotNull Servo rightOuttake = hardwareMap.servo.get(LancersBotConfig.RIGHT_OUTTAKE_SERVO);
-        leftOuttake.setPosition(LEFT_SERVO_VERTICAL_POSITION);
-        rightOuttake.setPosition(RIGHT_SERVO_VERTICAL_POSITION);
+        setOuttakePosition(SERVO_VERTICAL_POSITION);
     }
 
     public double getOutakePosition() {
@@ -68,7 +59,7 @@ public class LancersRobot {
     // outtake wheels
 
     /**
-     * @param power positive is in, negative is out
+     * @param power negative is in positive is out
      */
     public void setOuttakeWheelSpeed(final float power) {
         final @NotNull CRServo backOuttake = hardwareMap.crservo.get(LancersBotConfig.BACK_OUTTAKE_SERVO);
@@ -99,5 +90,12 @@ public class LancersRobot {
 
     public void doSliderMovement(final double sliderPower) {
         doSliderMovement(sliderPower, true, true);
+    }
+
+    // intake
+
+    public void doIntakeMovement(final double power) {
+        final @NotNull DcMotor intake = hardwareMap.get(DcMotor.class, LancersBotConfig.INTAKE_MOTOR);
+        intake.setPower(power);
     }
 }
