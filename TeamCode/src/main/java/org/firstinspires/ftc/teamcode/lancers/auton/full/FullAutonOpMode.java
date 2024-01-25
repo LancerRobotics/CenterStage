@@ -234,22 +234,23 @@ public class FullAutonOpMode extends LancersAutonOpMode {
         }
 
         // align onto backboard while bringing slides up
-        final double SLIDER_RUNTIME = 0.6d;
+        final double SLIDER_RUNTIME = 1.0d;
+        final double SLIDER_POWER = 0.9d;
         // note: do not move basket while sliders are up until they are screwed in
-        builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
-            robot.doSliderMovement(1.0d);
+        builder.UNSTABLE_addTemporalMarkerOffset(0.4, () -> {
+            robot.doSliderMovement(SLIDER_POWER);
         });
-        builder.UNSTABLE_addTemporalMarkerOffset(0.3, () -> {
+        builder.UNSTABLE_addTemporalMarkerOffset(0.4 + 0.3, () -> {
             robot.bringOuttakeVertical();
         });
-        builder.UNSTABLE_addTemporalMarkerOffset(SLIDER_RUNTIME, () -> {
+        builder.UNSTABLE_addTemporalMarkerOffset(0.4 + SLIDER_RUNTIME, () -> {
             robot.doSliderMovement(0.0d);
         });
-        builder.waitSeconds(1.3d); // wait for dog ears to settle
+        builder.waitSeconds(SLIDER_RUNTIME + 0.3); // wait for dog ears to settle
 
         // line up onto board
-        final double BOARD_X = 50.04d;
-        final double OUTERMOST_SLOT_Y = -42.47;
+        final double BOARD_X = 50.15d;
+        final double OUTERMOST_SLOT_Y = -43.57;
         final double CENTERMOST_SLOT_Y = -36.57;
         final double INNERMOST_SLOT_Y = -29.21;
         // if we are blue, outermost is left
@@ -305,7 +306,7 @@ public class FullAutonOpMode extends LancersAutonOpMode {
             robot.bringOuttakeHorizontal();
         });
         builder.UNSTABLE_addTemporalMarkerOffset(0.5, () -> {
-            robot.doSliderMovement(-1.0d);
+            robot.doSliderMovement(-SLIDER_POWER);
         });
         builder.UNSTABLE_addTemporalMarkerOffset(0.5 + SLIDER_RUNTIME, () -> {
             robot.doSliderMovement(0.0d);
