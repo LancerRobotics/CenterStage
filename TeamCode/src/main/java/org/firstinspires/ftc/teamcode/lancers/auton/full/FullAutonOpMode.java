@@ -1,12 +1,12 @@
-package org.firstinspires.ftc.teamcode.lancers.fullauton;
+package org.firstinspires.ftc.teamcode.lancers.auton.full;
 
 import android.util.Size;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.lancers.LancersBotConfig;
 import org.firstinspires.ftc.teamcode.lancers.auton.LancersAutonOpMode;
 import org.firstinspires.ftc.teamcode.lancers.auton.StartPosition;
-import org.firstinspires.ftc.teamcode.lancers.config.LancersBotConfig;
 import org.firstinspires.ftc.teamcode.lancers.util.LancersMecanumDrive;
 import org.firstinspires.ftc.teamcode.lancers.vision.pipeline.TeamScoringElementPipeline;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;

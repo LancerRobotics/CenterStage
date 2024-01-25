@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.lancers.config;
+package org.firstinspires.ftc.teamcode.lancers;
 
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotor;

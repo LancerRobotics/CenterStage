@@ -3,8 +3,8 @@ package org.firstinspires.ftc.teamcode.lancers.teleop;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import org.firstinspires.ftc.teamcode.lancers.config.Constants;
-import org.firstinspires.ftc.teamcode.lancers.config.LancersBotConfig;
+import org.firstinspires.ftc.teamcode.lancers.LancersBotConfig;
+import org.firstinspires.ftc.teamcode.lancers.LancersConstants;
 import org.firstinspires.ftc.teamcode.lancers.util.LancersMecanumDrive;
 import org.firstinspires.ftc.teamcode.lancers.util.LancersOpMode;
 import org.jetbrains.annotations.NotNull;
@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 
 // https://learnroadrunner.com/advanced.html#using-road-runner-in-teleop if roadrunner needed
-@TeleOp(name = Constants.TELEOP_NAME)
+@TeleOp(name = LancersConstants.TELEOP_NAME)
 public final class LancersTeleOp extends LancersOpMode {
     // Loop Tasks
 

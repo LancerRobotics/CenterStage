@@ -7,7 +7,7 @@ import lombok.Getter;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
 import org.firstinspires.ftc.teamcode.lancers.auton.StartPosition;
-import org.firstinspires.ftc.teamcode.lancers.fullauton.FullAutonOpMode;
+import org.firstinspires.ftc.teamcode.lancers.auton.full.FullAutonOpMode;
 import org.firstinspires.ftc.teamcode.lancers.vision.CanvasUtil;
 import org.firstinspires.ftc.teamcode.lancers.vision.VisionUtil;
 import org.firstinspires.ftc.vision.VisionProcessor;
@@ -20,7 +20,7 @@ import org.opencv.imgproc.Imgproc;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.firstinspires.ftc.teamcode.lancers.config.Constants.DEBUG;
+import static org.firstinspires.ftc.teamcode.lancers.LancersConstants.DEBUG;
 import static org.firstinspires.ftc.teamcode.lancers.vision.CanvasUtil.drawMatOntoCanvas;
 import static org.firstinspires.ftc.teamcode.lancers.vision.CanvasUtil.makeGraphicsRect;
 
