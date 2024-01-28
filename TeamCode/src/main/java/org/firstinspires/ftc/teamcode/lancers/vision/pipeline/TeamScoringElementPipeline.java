@@ -33,7 +33,7 @@ public class TeamScoringElementPipeline implements VisionProcessor { // aka pipe
     // HSV was way more reliable in our testing and greatly benefitted from the adding of a "low pass" (not quite low pass)
     // filter that excluded pixels that were way too far away from the target color.
     // see VisionUtil.LOW_PASS_THRESHOLD
-    private static final ColorSpace COLOR_SPACE_TO_USE = ColorSpace.HSV;
+    public static ColorSpace COLOR_SPACE_TO_USE = ColorSpace.HSV;
 
     // probably will be the right size by default, but will be changed when initialized
     int width = 640;
@@ -57,7 +57,7 @@ public class TeamScoringElementPipeline implements VisionProcessor { // aka pipe
         this.height = height;
     }
 
-    private static final int SUBREGION_COUNT = 5; // 3 has the right region clip into the center line, 5 is better
+    public static int SUBREGION_COUNT = 5; // 3 has the right region clip into the center line, 5 is better
 
     static {
         assert SUBREGION_COUNT % 2 == 1; // must be odd
@@ -147,12 +147,12 @@ public class TeamScoringElementPipeline implements VisionProcessor { // aka pipe
         return new FrameOutputContext(Collections.unmodifiableSet(new HashSet<>(zoneList)));
     }
 
-    private static final long CONFIDENCE_THRESHOLD_NANOS = 1_000_000_000L; // 1 second
+    public static long CONFIDENCE_THRESHOLD_NANOS = 1_000_000_000L; // 1 second
     private long lastKnownLocationTimeNanos = 0;
 
     private @Nullable StartPosition.TeamScoringElementLocation lastKnownLocation = null;
 
-    private static final long FRAMES_SINCE_LAST_KNOWN_LOCATION_THRESHOLD = 2;
+    public static long FRAMES_SINCE_LAST_KNOWN_LOCATION_THRESHOLD = 2;
     // make sure we detect the same thing twice, so that it isn't a fluke
     private long framesSinceLastKnownLocation = 0;
 
