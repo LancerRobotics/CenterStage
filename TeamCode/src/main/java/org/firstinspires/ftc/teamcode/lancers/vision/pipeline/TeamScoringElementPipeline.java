@@ -147,14 +147,19 @@ public class TeamScoringElementPipeline implements VisionProcessor { // aka pipe
         return new FrameOutputContext(Collections.unmodifiableSet(new HashSet<>(zoneList)));
     }
 
-    public static long CONFIDENCE_THRESHOLD_NANOS = 1_000_000_000L; // 1 second
+    public static int CONFIDENCE_THRESHOLD_SECONDS = 1; // 1 second
+    // acme dashboard doesn't know how to deal with longs
+
+    public static long getConfidenceThresholdNanos() {
+        return CONFIDENCE_THRESHOLD_SECONDS * 1_000_000_000L;
+    }
     private long lastKnownLocationTimeNanos = 0;
 
     private @Nullable StartPosition.TeamScoringElementLocation lastKnownLocation = null;
 
-    public static long FRAMES_SINCE_LAST_KNOWN_LOCATION_THRESHOLD = 2;
+    public static int FRAMES_SINCE_LAST_KNOWN_LOCATION_THRESHOLD = 2;
     // make sure we detect the same thing twice, so that it isn't a fluke
-    private long framesSinceLastKnownLocation = 0;
+    private int framesSinceLastKnownLocation = 0;
 
     @Contract(pure = false) // there is a side effect
     public boolean findIfEstimateIsGood(final @Nullable StartPosition.TeamScoringElementLocation tse, final long captureTimeNanos) {
@@ -175,7 +180,7 @@ public class TeamScoringElementPipeline implements VisionProcessor { // aka pipe
             // if the estimated location is the same as the last known location,
             // we can be confident that the answer is correct if it has remanined the same for a second
             return (framesSinceLastKnownLocation < FRAMES_SINCE_LAST_KNOWN_LOCATION_THRESHOLD)
-                    && ((captureTimeNanos - lastKnownLocationTimeNanos) >= CONFIDENCE_THRESHOLD_NANOS);
+                    && ((captureTimeNanos - lastKnownLocationTimeNanos) >= getConfidenceThresholdNanos());
         }
     }
 
