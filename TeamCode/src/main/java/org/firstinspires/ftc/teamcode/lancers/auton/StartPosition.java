@@ -64,9 +64,4 @@ public enum StartPosition {
         BACK
     }
 
-    public enum TeamScoringElementLocation {
-        LEFT,
-        CENTER,
-        RIGHT
-    }
 }

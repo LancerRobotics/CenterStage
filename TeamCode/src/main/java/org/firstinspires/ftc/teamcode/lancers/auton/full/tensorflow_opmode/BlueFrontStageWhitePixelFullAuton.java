@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.lancers.auton.full.opmode;
+package org.firstinspires.ftc.teamcode.lancers.auton.full.tensorflow_opmode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import org.firstinspires.ftc.teamcode.lancers.LancersConstants;
@@ -9,10 +9,10 @@ import org.firstinspires.ftc.teamcode.lancers.auton.full.FullAutonOpMode;
  * Bootstrap wrapper class for {@link FullAutonOpMode}
  * Any code should be stored in {@link FullAutonOpMode}, not this class.
  */
-@Autonomous(preselectTeleOp = LancersConstants.TELEOP_NAME, group = "FullAuton")
+@Autonomous(preselectTeleOp = LancersConstants.TELEOP_NAME, group = "WhitePixelFullAuton")
 //@Disabled
-public final class BlueBackStageFullAuton extends FullAutonOpMode {
-    public BlueBackStageFullAuton() {
-        super(StartPosition.BLUE_BACK_STAGE);
+public final class BlueFrontStageWhitePixelFullAuton extends FullAutonOpMode {
+    public BlueFrontStageWhitePixelFullAuton() {
+        super(StartPosition.BLUE_FRONT_STAGE);
     }
 }

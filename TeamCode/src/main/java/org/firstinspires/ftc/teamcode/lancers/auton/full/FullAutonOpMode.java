@@ -5,9 +5,11 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.teamcode.lancers.LancersBotConfig;
 import org.firstinspires.ftc.teamcode.lancers.auton.LancersAutonOpMode;
 import org.firstinspires.ftc.teamcode.lancers.auton.StartPosition;
+import org.firstinspires.ftc.teamcode.lancers.auton.TeamScoringElementLocation;
 import org.firstinspires.ftc.teamcode.lancers.util.LancersMecanumDrive;
 import org.firstinspires.ftc.teamcode.lancers.vision.pipeline.TeamScoringElementPipeline;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
@@ -19,7 +21,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.Random;
 
+import static java.lang.Double.NaN;
 import static org.firstinspires.ftc.teamcode.lancers.auton.AllianceColor.BLUE;
 
 /**
@@ -42,11 +46,21 @@ public class FullAutonOpMode extends LancersAutonOpMode {
     public static double CENTERMOST_SLOT_Y = -36.57;
     public static double INNERMOST_SLOT_Y = -29.21;
 
+    public static double TENSORFLOW_CONFIDENCE_THRESHOLD = 0.5d;
+    public static double WAIT_TIME_BEFORE_LOCATION_GUESS = 5.0d + 10.0d; // takes small amout of time to prime camera
+
 
     private @Nullable LancersMecanumDrive drive = null;
+    private final @NotNull DetectionType detectionType;
 
-    public FullAutonOpMode(@NotNull StartPosition startPosition) {
+    public FullAutonOpMode(final @NotNull StartPosition startPosition) {
         super(startPosition);
+        detectionType = DetectionType.OPENCV;
+    }
+
+    public FullAutonOpMode(final @NotNull StartPosition startPosition, final @NotNull DetectionType detectionType) {
+        super(startPosition);
+        this.detectionType = detectionType;
     }
 
     private void initDrive() {
@@ -145,7 +159,7 @@ public class FullAutonOpMode extends LancersAutonOpMode {
         }
     }
 
-    public @NotNull TrajectorySequence getTrajectorySequence(final @NotNull StartPosition.TeamScoringElementLocation teamScoringElementLocation) {
+    public @NotNull TrajectorySequence getTrajectorySequence(final @NotNull TeamScoringElementLocation teamScoringElementLocation) {
         // we can't run this trajectory right away because we need to wait for the tse to be discovered
         Objects.requireNonNull(drive);
         Objects.requireNonNull(robot);
@@ -194,18 +208,18 @@ public class FullAutonOpMode extends LancersAutonOpMode {
         builder.waitSeconds(INTAKE_RUNTIME);
 
         // back facing backwards
-        if (teamScoringElementLocation != StartPosition.TeamScoringElementLocation.CENTER) {
+        if (teamScoringElementLocation != TeamScoringElementLocation.CENTER) {
             // we need to avoid clipping truss
             final boolean isFacingTruss;
             switch (startPosition) {
                 case BLUE_FRONT_STAGE:
                 case RED_BACK_STAGE:
-                    isFacingTruss = teamScoringElementLocation == StartPosition.TeamScoringElementLocation.LEFT;
+                    isFacingTruss = teamScoringElementLocation == TeamScoringElementLocation.LEFT;
                     break;
                 case RED_FRONT_STAGE:
                 case BLUE_BACK_STAGE:
                 default:
-                    isFacingTruss = teamScoringElementLocation == StartPosition.TeamScoringElementLocation.RIGHT;
+                    isFacingTruss = teamScoringElementLocation == TeamScoringElementLocation.RIGHT;
             }
             if (isFacingTruss) {
                 builder.back(2.0d);
@@ -357,17 +371,76 @@ public class FullAutonOpMode extends LancersAutonOpMode {
 
     private @NotNull State state = State.INIT;
 
+    public boolean shouldGuessLocation() {
+        return getOpModeRunTimeSeconds() > WAIT_TIME_BEFORE_LOCATION_GUESS;
+    }
+
+    public @Nullable TeamScoringElementLocation getTensorflowTeamScoringElementLocation() {
+        for (final @NotNull Recognition recognition : tfod.getRecognitions()) {
+            if (recognition.getConfidence() < TENSORFLOW_CONFIDENCE_THRESHOLD) {
+                continue;
+            }
+            final double recognitionCenterX = (recognition.getLeft() + recognition.getRight()) / 2;
+            final double recognitionCenterY = (recognition.getTop() + recognition.getBottom()) / 2;
+            if (recognitionCenterX < recognition.getImageWidth() / 5d) {
+                return TeamScoringElementLocation.LEFT;
+            } else if (recognitionCenterY < (recognition.getImageWidth() / 5d) * 4) {
+                return TeamScoringElementLocation.CENTER;
+            } else {
+                return TeamScoringElementLocation.RIGHT;
+            }
+        }
+        return null;
+    }
+
+    private @Nullable TeamScoringElementLocation knownGoodLocation = null;
+
+    public @Nullable TeamScoringElementLocation getTeamScoringElementLocation() {
+        if (knownGoodLocation != null) {
+            return knownGoodLocation;
+        }
+        if (shouldGuessLocation()) {
+            final TeamScoringElementLocation[] locations = TeamScoringElementLocation.values();
+            final @NotNull Random random = new Random();
+            return locations[random.nextInt(locations.length)];
+        }
+        switch (detectionType) {
+            case OPENCV:
+                final @Nullable TeamScoringElementLocation possiblePipelineLocation = tseProcessor.getTeamScoringElementLocation();
+                if (possiblePipelineLocation != null) {
+                    knownGoodLocation = possiblePipelineLocation;
+                }
+                return possiblePipelineLocation;
+            case TENSORFLOW:
+                // emergency plan if we can't get a recongition in two seconds, just assume it's going to be on the left
+                final @Nullable TeamScoringElementLocation possibleTensorflowLocation = getTensorflowTeamScoringElementLocation();
+                if (possibleTensorflowLocation != null) {
+                    knownGoodLocation = possibleTensorflowLocation;
+                }
+                return possibleTensorflowLocation;
+            default:
+                return null;
+        }
+    }
+
     private void doStateSwitchActivity(final @NotNull State newState) {
         Objects.requireNonNull(drive);
         Objects.requireNonNull(visionPortal);
 
         switch (newState) {
             case FIND_TSE:
-                visionPortal.setProcessorEnabled(tseProcessor, true);
+                switch (detectionType) {
+                    case OPENCV:
+                        visionPortal.setProcessorEnabled(tseProcessor, true);
+                        break;
+                    case TENSORFLOW:
+                        visionPortal.setProcessorEnabled(tfod, true);
+                        break;
+                }
                 break;
             case TRAJECTORY:
-                assert tseProcessor.getTeamScoringElementLocation() != null;
-                final @NotNull TrajectorySequence trajectorySequence = getTrajectorySequence(tseProcessor.getTeamScoringElementLocation());
+                assert getTeamScoringElementLocation() != null;
+                final @NotNull TrajectorySequence trajectorySequence = getTrajectorySequence(getTeamScoringElementLocation());
                 drive.followTrajectorySequenceAsync(trajectorySequence);
                 break;
             case DONE:
@@ -394,8 +467,15 @@ public class FullAutonOpMode extends LancersAutonOpMode {
         synchronized (stateMachineLock) {
             switch (state) {
                 case FIND_TSE:
-                    if (tseProcessor.getTeamScoringElementLocation() != null) {
-                        visionPortal.setProcessorEnabled(tseProcessor, false); // done using, save cycles
+                    if (getTeamScoringElementLocation() != null) {
+                        switch (detectionType) { // done using, save cycles
+                            case OPENCV:
+                                visionPortal.setProcessorEnabled(tseProcessor, false);
+                                break;
+                            case TENSORFLOW:
+                                visionPortal.setProcessorEnabled(tfod, false);
+                                break;
+                        }
                         switchStateTo(State.TRAJECTORY);
                     }
                     break;
@@ -414,12 +494,22 @@ public class FullAutonOpMode extends LancersAutonOpMode {
 
         multipleTelemetry.addData("State", state);
         multipleTelemetry.addData("Running trajectory", drive.isBusy());
+        multipleTelemetry.addData("Detection zone", getTeamScoringElementLocation());
+        multipleTelemetry.addData("Guessing", shouldGuessLocation());
 
         telemetry.update();
         multipleTelemetry.update();
     }
 
-    double opModeStartTime = 0.0;
+    double opModeStartTime = NaN;
+
+    public double getOpModeRunTimeSeconds() {
+        if (Double.isNaN(opModeStartTime)) {
+            return NaN;
+        } else {
+            return getRuntime() - opModeStartTime;
+        }
+    }
 
     // https://learnroadrunner.com/advanced.html#finite-state-machine-following
     @Override
@@ -442,5 +532,10 @@ public class FullAutonOpMode extends LancersAutonOpMode {
         } finally {
             cleanup(); // no need to autoclose the drive nor vision, easier w/ 2 objects
         }
+    }
+
+    public enum DetectionType {
+        TENSORFLOW,
+        OPENCV;
     }
 }
