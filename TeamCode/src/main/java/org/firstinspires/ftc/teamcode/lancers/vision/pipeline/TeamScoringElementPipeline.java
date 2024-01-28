@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.lancers.vision.pipeline;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import com.acmerobotics.dashboard.config.Config;
 import lombok.Data;
 import lombok.Getter;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -26,6 +27,7 @@ import static org.firstinspires.ftc.teamcode.lancers.vision.CanvasUtil.makeGraph
 
 // on a control hub, it takes about 2.5 seconds to run this pipeline all-in
 // this is pretty good considering it only needs to get 3-5 frames off before it can make a decision
+@Config
 public class TeamScoringElementPipeline implements VisionProcessor { // aka pipeline
     // while RGB works, it indirectly allows more noise to seep into the final heatmap.
     // HSV was way more reliable in our testing and greatly benefitted from the adding of a "low pass" (not quite low pass)
