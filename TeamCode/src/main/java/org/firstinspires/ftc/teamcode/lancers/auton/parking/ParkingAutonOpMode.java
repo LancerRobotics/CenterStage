@@ -25,6 +25,10 @@ public class ParkingAutonOpMode extends LancersAutonOpMode {
 
             waitForStart();
 
+            if (startPosition.getStagePosition() == StartPosition.StagePosition.FRONT) {
+                sleep(20_000);
+            }
+
             if (isStopRequested()) return;
 
             drive.followTrajectorySequence(trajectorySequence);

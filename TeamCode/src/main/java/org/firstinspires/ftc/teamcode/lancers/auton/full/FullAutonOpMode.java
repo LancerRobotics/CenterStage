@@ -517,9 +517,9 @@ public class FullAutonOpMode extends LancersAutonOpMode {
         initDrive();
         initVision();
         initCommon();
-        opModeStartTime = getRuntime(); // the attribute startTime is actually the init time
 
         waitForStart();
+        opModeStartTime = getRuntime(); // the attribute startTime is actually the init time
         switchStateTo(State.FIND_TSE);
 
         try {
