@@ -52,15 +52,24 @@ public class FullAutonOpMode extends LancersAutonOpMode {
 
     private @Nullable LancersMecanumDrive drive = null;
     private final @NotNull DetectionType detectionType;
+    private final boolean placeYellowPixel;
 
     public FullAutonOpMode(final @NotNull StartPosition startPosition) {
         super(startPosition);
         detectionType = DetectionType.OPENCV;
+        placeYellowPixel = true;
     }
 
     public FullAutonOpMode(final @NotNull StartPosition startPosition, final @NotNull DetectionType detectionType) {
         super(startPosition);
         this.detectionType = detectionType;
+        placeYellowPixel = true;
+    }
+
+    public FullAutonOpMode(final @NotNull StartPosition startPosition, final @NotNull DetectionType detectionType, final boolean placeYellowPixel) {
+        super(startPosition);
+        this.detectionType = detectionType;
+        this.placeYellowPixel = placeYellowPixel;
     }
 
     private void initDrive() {
@@ -228,124 +237,127 @@ public class FullAutonOpMode extends LancersAutonOpMode {
             }
         }
 
-        // get backstage
-        switch (startPosition.getStagePosition()) {
-            case BACK:
-                builder.lineToConstantHeading(startPosition.getSafeMovementPose().vec());
-                // we will need to turn to face infield
-                // opposite of previous switch
-                switch (teamScoringElementLocation) {
-                    case RIGHT:
-                        builder.turn(Math.toRadians(90.0d)); // counter-clockwise
-                        break;
-                    case LEFT:
-                        builder.turn(Math.toRadians(-90.0d)); // clockwise
-                        break;
-                }
-                switch (startPosition.getAllianceColor()) {
-                    case BLUE:
-                        builder.strafeLeft(7.0d);
-                        break;
-                    case RED:
-                        builder.strafeRight(7.0d);
-                        break;
-                }
-                builder.splineTo(new Vector2d(37.07, -36.76 * flipY), Math.toRadians(faceInDeg));
-                break;
-            case FRONT:
-                builder
-                        .lineToSplineHeading(startPosition.getSafeMovementPose())
-                        .lineToSplineHeading(new Pose2d(-58.52, -60.71 * flipY, Math.toRadians(faceInDeg)))
-                        .lineToConstantHeading(new Vector2d(-58.52, -12.97 * flipY)) // go forward
-                        .turn(Math.toRadians(startPosition.getAllianceColor() == BLUE ? 90 : -90)) // can't spline here
-                        .lineToConstantHeading(new Vector2d(34.47, -12.81 * flipY));
-                break;
-        }
+        // we may be placed with an alliance that has a better auton and/or needs to be placed on the backstage, so we can go frontstage and only place yellow
+        if (placeYellowPixel) {
+            // get backstage
+            switch (startPosition.getStagePosition()) {
+                case BACK:
+                    builder.lineToConstantHeading(startPosition.getSafeMovementPose().vec());
+                    // we will need to turn to face infield
+                    // opposite of previous switch
+                    switch (teamScoringElementLocation) {
+                        case RIGHT:
+                            builder.turn(Math.toRadians(90.0d)); // counter-clockwise
+                            break;
+                        case LEFT:
+                            builder.turn(Math.toRadians(-90.0d)); // clockwise
+                            break;
+                    }
+                    switch (startPosition.getAllianceColor()) {
+                        case BLUE:
+                            builder.strafeLeft(7.0d);
+                            break;
+                        case RED:
+                            builder.strafeRight(7.0d);
+                            break;
+                    }
+                    builder.splineTo(new Vector2d(37.07, -36.76 * flipY), Math.toRadians(faceInDeg));
+                    break;
+                case FRONT:
+                    builder
+                            .lineToSplineHeading(startPosition.getSafeMovementPose())
+                            .lineToSplineHeading(new Pose2d(-58.52, -60.71 * flipY, Math.toRadians(faceInDeg)))
+                            .lineToConstantHeading(new Vector2d(-58.52, -12.97 * flipY)) // go forward
+                            .turn(Math.toRadians(startPosition.getAllianceColor() == BLUE ? 90 : -90)) // can't spline here
+                            .lineToConstantHeading(new Vector2d(34.47, -12.81 * flipY));
+                    break;
+            }
 
-        // align onto backboard while bringing slides up
-        // note: do not move basket while sliders are up until they are screwed in
-        builder.UNSTABLE_addTemporalMarkerOffset(0.4, () -> {
-            robot.doSliderMovement(SLIDER_POWER);
-        });
-        builder.UNSTABLE_addTemporalMarkerOffset(0.4 + 0.3, () -> {
-            robot.bringOuttakeVertical();
-        });
-        builder.UNSTABLE_addTemporalMarkerOffset(0.4 + SLIDER_RUNTIME, () -> {
-            robot.doSliderMovement(0.0d);
-        });
-        builder.waitSeconds(SLIDER_RUNTIME + 0.3); // wait for dog ears to settle
+            // align onto backboard while bringing slides up
+            // note: do not move basket while sliders are up until they are screwed in
+            builder.UNSTABLE_addTemporalMarkerOffset(0.4, () -> {
+                robot.doSliderMovement(SLIDER_POWER);
+            });
+            builder.UNSTABLE_addTemporalMarkerOffset(0.4 + 0.3, () -> {
+                robot.bringOuttakeVertical();
+            });
+            builder.UNSTABLE_addTemporalMarkerOffset(0.4 + SLIDER_RUNTIME, () -> {
+                robot.doSliderMovement(0.0d);
+            });
+            builder.waitSeconds(SLIDER_RUNTIME + 0.3); // wait for dog ears to settle
 
-        // line up onto board
-        // if we are blue, outermost is left
-        // if we are red, outermost is right
+            // line up onto board
+            // if we are blue, outermost is left
+            // if we are red, outermost is right
 
-        final double boardY;
-        switch (teamScoringElementLocation) {
-            case LEFT:
-                switch (startPosition.getAllianceColor()) {
-                    case BLUE:
-                        boardY = OUTERMOST_SLOT_Y;
-                        break;
-                    default: // exhaustive
-                    case RED:
-                        boardY = INNERMOST_SLOT_Y;
-                        break;
-                }
-                break;
-            case RIGHT:
-                switch (startPosition.getAllianceColor()) {
-                    case BLUE:
-                        boardY = INNERMOST_SLOT_Y;
-                        break;
-                    default: // exhaustive
-                    case RED:
-                        boardY = OUTERMOST_SLOT_Y;
-                        break;
-                }
-                break;
-            default: // exhaustive
-            case CENTER:
-                boardY = CENTERMOST_SLOT_Y;
-                break;
-        }
+            final double boardY;
+            switch (teamScoringElementLocation) {
+                case LEFT:
+                    switch (startPosition.getAllianceColor()) {
+                        case BLUE:
+                            boardY = OUTERMOST_SLOT_Y;
+                            break;
+                        default: // exhaustive
+                        case RED:
+                            boardY = INNERMOST_SLOT_Y;
+                            break;
+                    }
+                    break;
+                case RIGHT:
+                    switch (startPosition.getAllianceColor()) {
+                        case BLUE:
+                            boardY = INNERMOST_SLOT_Y;
+                            break;
+                        default: // exhaustive
+                        case RED:
+                            boardY = OUTERMOST_SLOT_Y;
+                            break;
+                    }
+                    break;
+                default: // exhaustive
+                case CENTER:
+                    boardY = CENTERMOST_SLOT_Y;
+                    break;
+            }
 
-        builder.lineToSplineHeading(new Pose2d(BOARD_X, boardY * flipY, Math.toRadians(faceDroneFieldDeg)));
+            builder.lineToSplineHeading(new Pose2d(BOARD_X, boardY * flipY, Math.toRadians(faceDroneFieldDeg)));
 
-        // drop out pixel (by now we should be on back)
-        builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
-            robot.setOuttakeWheelSpeed(1.0f);
-        });
-        builder.UNSTABLE_addTemporalMarkerOffset(1.5, () -> {
-            robot.setOuttakeWheelSpeed(0.0f);
-        });
-        builder.waitSeconds(1.0); // don't wait forever
+            // drop out pixel (by now we should be on back)
+            builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
+                robot.setOuttakeWheelSpeed(1.0f);
+            });
+            builder.UNSTABLE_addTemporalMarkerOffset(1.5, () -> {
+                robot.setOuttakeWheelSpeed(0.0f);
+            });
+            builder.waitSeconds(1.0); // don't wait forever
 
-        // move forward about 3 inches to bring slides down
-        builder.forward(4.0d);
+            // move forward about 3 inches to bring slides down
+            builder.forward(4.0d);
 
-        // slides down
-        // avoid automatically bring basket horizontal
-        builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
-            robot.bringOuttakeHorizontal();
-        });
-        builder.UNSTABLE_addTemporalMarkerOffset(0.5, () -> {
-            robot.doSliderMovement(-SLIDER_POWER);
-        });
-        builder.UNSTABLE_addTemporalMarkerOffset(0.5 + SLIDER_RUNTIME, () -> {
-            robot.doSliderMovement(0.0d);
-        });
+            // slides down
+            // avoid automatically bring basket horizontal
+            builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
+                robot.bringOuttakeHorizontal();
+            });
+            builder.UNSTABLE_addTemporalMarkerOffset(0.5, () -> {
+                robot.doSliderMovement(-SLIDER_POWER);
+            });
+            builder.UNSTABLE_addTemporalMarkerOffset(0.5 + SLIDER_RUNTIME, () -> {
+                robot.doSliderMovement(0.0d);
+            });
 
-        // park
-        builder.forward(3.0d); // clear off board to avoid descoring
-        switch (startPosition) {
-            case RED_FRONT_STAGE:
-            case BLUE_FRONT_STAGE:
-                builder.splineTo(new Vector2d(57.51, -12.51 * flipY), Math.toRadians(faceBoardDeg));
-                break;
-            case RED_BACK_STAGE:
-            case BLUE_BACK_STAGE:
-                builder.splineTo(new Vector2d(58.12, -61.02 * flipY), Math.toRadians(faceBoardDeg));
-                break;
+            // park
+            builder.forward(3.0d); // clear off board to avoid descoring
+            switch (startPosition) {
+                case RED_FRONT_STAGE:
+                case BLUE_FRONT_STAGE:
+                    builder.splineTo(new Vector2d(57.51, -12.51 * flipY), Math.toRadians(faceBoardDeg));
+                    break;
+                case RED_BACK_STAGE:
+                case BLUE_BACK_STAGE:
+                    builder.splineTo(new Vector2d(58.12, -61.02 * flipY), Math.toRadians(faceBoardDeg));
+                    break;
+            }
         }
 
         // we are done
