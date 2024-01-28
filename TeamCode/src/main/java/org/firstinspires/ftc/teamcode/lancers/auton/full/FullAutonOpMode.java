@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.lancers.auton.full;
 
 import android.util.Size;
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -25,7 +26,23 @@ import static org.firstinspires.ftc.teamcode.lancers.auton.AllianceColor.BLUE;
  * Holds common code shared between different auton modes.
  * Implements {@link org.firstinspires.ftc.robotcontroller.external.samples.ConceptDoubleVision} & uses {@link LancersMecanumDrive}
  */
+@Config
 public class FullAutonOpMode extends LancersAutonOpMode {
+    // constants for acmedashboard
+    public static double CENTER_PIXEL_LINEUP_Y = -37.8d;
+
+    public static double INTAKE_RUNTIME = 0.6d;
+    public static double INTAKE_POWER = 0.62d;
+
+    public static double SLIDER_RUNTIME = 1.25d;
+    public static double SLIDER_POWER = 0.9d;
+
+    public static double BOARD_X = 50.15d;
+    public static double OUTERMOST_SLOT_Y = -43.57;
+    public static double CENTERMOST_SLOT_Y = -36.57;
+    public static double INNERMOST_SLOT_Y = -29.21;
+
+
     private @Nullable LancersMecanumDrive drive = null;
 
     public FullAutonOpMode(@NotNull StartPosition startPosition) {
@@ -149,11 +166,11 @@ public class FullAutonOpMode extends LancersAutonOpMode {
                 switch (startPosition) {
                     case RED_FRONT_STAGE:
                     case BLUE_FRONT_STAGE:
-                        builder.splineTo(new Vector2d(-43.63, -35.35 * flipY), Math.toRadians(faceInDeg));
+                        builder.splineTo(new Vector2d(-43.63, CENTER_PIXEL_LINEUP_Y * flipY), Math.toRadians(faceInDeg));
                         break;
                     case RED_BACK_STAGE:
                     case BLUE_BACK_STAGE:
-                        builder.splineTo(new Vector2d(17.24, -35.89 * flipY), Math.toRadians(faceInDeg));
+                        builder.splineTo(new Vector2d(17.24, CENTER_PIXEL_LINEUP_Y * flipY), Math.toRadians(faceInDeg));
                         break;
                 }
                 break;
@@ -168,8 +185,6 @@ public class FullAutonOpMode extends LancersAutonOpMode {
         }
 
         // drop the pixel
-        final double INTAKE_RUNTIME = 0.6d;
-        final double INTAKE_POWER = 0.55d;
         builder.UNSTABLE_addTemporalMarkerOffset(0.0, () -> {
             robot.doIntakeMovement(-INTAKE_POWER);
         });
@@ -234,8 +249,6 @@ public class FullAutonOpMode extends LancersAutonOpMode {
         }
 
         // align onto backboard while bringing slides up
-        final double SLIDER_RUNTIME = 1.0d;
-        final double SLIDER_POWER = 0.9d;
         // note: do not move basket while sliders are up until they are screwed in
         builder.UNSTABLE_addTemporalMarkerOffset(0.4, () -> {
             robot.doSliderMovement(SLIDER_POWER);
@@ -249,10 +262,6 @@ public class FullAutonOpMode extends LancersAutonOpMode {
         builder.waitSeconds(SLIDER_RUNTIME + 0.3); // wait for dog ears to settle
 
         // line up onto board
-        final double BOARD_X = 50.15d;
-        final double OUTERMOST_SLOT_Y = -43.57;
-        final double CENTERMOST_SLOT_Y = -36.57;
-        final double INNERMOST_SLOT_Y = -29.21;
         // if we are blue, outermost is left
         // if we are red, outermost is right
 
