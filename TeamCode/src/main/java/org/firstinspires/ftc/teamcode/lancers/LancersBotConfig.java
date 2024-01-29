@@ -14,7 +14,6 @@ public final class LancersBotConfig {
     }
 
     private static final @NotNull String WIFI_SSID = "3415-RC";
-    private static final @NotNull String WIFI_PASSWORD = "MaChiChi";
 
     // == CONTROL HUB / LEFT ==
 
