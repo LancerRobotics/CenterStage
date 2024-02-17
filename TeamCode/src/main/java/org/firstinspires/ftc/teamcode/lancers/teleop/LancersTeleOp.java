@@ -3,17 +3,17 @@ package org.firstinspires.ftc.teamcode.lancers.teleop;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import org.firstinspires.ftc.teamcode.lancers.LancersBaseOpMode;
 import org.firstinspires.ftc.teamcode.lancers.LancersBotConfig;
 import org.firstinspires.ftc.teamcode.lancers.LancersConstants;
-import org.firstinspires.ftc.teamcode.lancers.util.LancersMecanumDrive;
-import org.firstinspires.ftc.teamcode.lancers.util.LancersOpMode;
+import org.firstinspires.ftc.teamcode.lancers.teleop.util.ControlUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
 // https://learnroadrunner.com/advanced.html#using-road-runner-in-teleop if roadrunner needed
 @TeleOp(name = LancersConstants.TELEOP_NAME)
-public final class LancersTeleOp extends LancersOpMode {
+public final class LancersTeleOp extends LancersBaseOpMode {
     // Loop Tasks
 
     /**
@@ -134,7 +134,7 @@ public final class LancersTeleOp extends LancersOpMode {
         // NOTE: If an auton didn't run or if the global state in the drive persisted, the pose data may be incorrect.
         //       This can be fixed by running an auton that requires the bot be in a specific starting positon
         //       (e.g. one of the parking autons or the full auton) (this only matters for launching the drone)
-        try (final @NotNull LancersMecanumDrive drive = new LancersMecanumDrive(hardwareMap)) {
+        try {
             initCommon();
 
             waitForStart();
@@ -142,7 +142,7 @@ public final class LancersTeleOp extends LancersOpMode {
             if (isStopRequested()) return;
 
             while (opModeIsActive()) {
-                drive.update(); // sends trajectory data to dashboard
+                Objects.requireNonNull(drive).update(); // sends trajectory data to dashboard
 
                 // Gamepad 1 / Movement
                 mecanumMovement(gamepad1);
@@ -155,6 +155,8 @@ public final class LancersTeleOp extends LancersOpMode {
 
                 telemetry.update();
             }
+        } finally {
+            Objects.requireNonNull(robot).cleanup();
         }
     }
 }

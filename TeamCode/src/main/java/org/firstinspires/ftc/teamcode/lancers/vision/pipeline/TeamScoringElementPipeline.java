@@ -7,10 +7,10 @@ import lombok.Data;
 import lombok.Getter;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
-import org.firstinspires.ftc.teamcode.lancers.auton.TeamScoringElementLocation;
-import org.firstinspires.ftc.teamcode.lancers.auton.full.FullAutonOpMode;
-import org.firstinspires.ftc.teamcode.lancers.vision.CanvasUtil;
-import org.firstinspires.ftc.teamcode.lancers.vision.VisionUtil;
+import org.firstinspires.ftc.teamcode.lancers.auton.model.TeamScoringElementLocation;
+import org.firstinspires.ftc.teamcode.lancers.auton.opmode.FullAutonOpMode;
+import org.firstinspires.ftc.teamcode.lancers.vision.util.CanvasUtil;
+import org.firstinspires.ftc.teamcode.lancers.vision.util.VisionUtil;
 import org.firstinspires.ftc.vision.VisionProcessor;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -22,8 +22,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.firstinspires.ftc.teamcode.lancers.LancersConstants.DEBUG;
-import static org.firstinspires.ftc.teamcode.lancers.vision.CanvasUtil.drawMatOntoCanvas;
-import static org.firstinspires.ftc.teamcode.lancers.vision.CanvasUtil.makeGraphicsRect;
+import static org.firstinspires.ftc.teamcode.lancers.vision.util.CanvasUtil.drawMatOntoCanvas;
+import static org.firstinspires.ftc.teamcode.lancers.vision.util.CanvasUtil.makeGraphicsRect;
 
 // on a control hub, it takes about 2.5 seconds to run this pipeline all-in
 // this is pretty good considering it only needs to get 3-5 frames off before it can make a decision

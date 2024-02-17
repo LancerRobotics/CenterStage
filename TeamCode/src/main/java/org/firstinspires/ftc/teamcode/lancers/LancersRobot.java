@@ -1,18 +1,26 @@
 package org.firstinspires.ftc.teamcode.lancers;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.roadrunner.drive.MecanumDrive;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import lombok.Getter;
+import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @Config
 public class LancersRobot {
-    final @NotNull HardwareMap hardwareMap;
+    private final @NotNull HardwareMap hardwareMap;
+    @Getter
+    private final @NotNull LancersMecanumDrive drive;
 
     public LancersRobot(final @NotNull HardwareMap hardwareMap) {
         this.hardwareMap = hardwareMap;
+        this.drive = new LancersMecanumDrive(hardwareMap);
     }
 
     // outtake basket
@@ -97,5 +105,43 @@ public class LancersRobot {
     public void doIntakeMovement(final double power) {
         final @NotNull DcMotor intake = hardwareMap.get(DcMotor.class, LancersBotConfig.INTAKE_MOTOR);
         intake.setPower(power);
+    }
+
+    public void cleanup() {
+        drive.close();
+    }
+
+    /**
+     * A wrapper around {@link SampleMecanumDrive} that allows for state data to be persisted between opmodes.
+     */
+    public static class LancersMecanumDrive extends SampleMecanumDrive implements AutoCloseable {
+        private LancersMecanumDrive(final @NotNull HardwareMap hardwareMap) {
+            super(hardwareMap);
+            PoseStorage.restoreStoredPose(this);
+        }
+
+        @Override
+        public void close() {
+            PoseStorage.updateStoredPose(this);
+        }
+
+        private static class PoseStorage {
+            // If we ever make serious use of this, we should probably migrate this to using the database
+            // https://learnroadrunner.com/advanced.html#transferring-pose-between-opmodes:~:text=Another%20downside%20is,%23
+            private PoseStorage() {
+            }
+
+            private static @Nullable Pose2d lastPose = null;
+
+            private static void updateStoredPose(@NotNull MecanumDrive drive) {
+                lastPose = drive.getPoseEstimate();
+            }
+
+            private static void restoreStoredPose(@NotNull MecanumDrive drive) {
+                if (lastPose != null) {
+                    drive.setPoseEstimate(lastPose);
+                }
+            }
+        }
     }
 }
