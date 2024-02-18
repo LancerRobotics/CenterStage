@@ -17,5 +17,7 @@ public abstract class LancersBaseOpMode extends LinearOpMode {
         robot = new LancersRobot(hardwareMap);
         drive = robot.getDrive();
         robot.initOuttakeBasket();
+        robot.configureMotors();
+        robot.resetDroneLauncher();
     }
 }

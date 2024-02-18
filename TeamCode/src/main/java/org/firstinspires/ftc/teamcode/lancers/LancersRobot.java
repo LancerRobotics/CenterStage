@@ -3,10 +3,8 @@ package org.firstinspires.ftc.teamcode.lancers;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.drive.MecanumDrive;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.hardware.*;
 import lombok.Getter;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.jetbrains.annotations.NotNull;
@@ -23,22 +21,51 @@ public class LancersRobot {
         this.drive = new LancersMecanumDrive(hardwareMap);
     }
 
+    /**
+     * Configure the motors to go in the correct direction
+     */
+    public static void configureMotors(final @NotNull HardwareMap hardwareMap) {
+        final @NotNull DcMotor leftFront = hardwareMap.dcMotor.get(LancersBotConfig.LEFT_FRONT_MOTOR);
+        final @NotNull DcMotor leftRear = hardwareMap.dcMotor.get(LancersBotConfig.LEFT_REAR_MOTOR);
+        final @NotNull DcMotor rightFront = hardwareMap.dcMotor.get(LancersBotConfig.RIGHT_FRONT_MOTOR);
+        final @NotNull DcMotor rightRear = hardwareMap.dcMotor.get(LancersBotConfig.RIGHT_REAR_MOTOR);
+
+        // Reverse the right side motors. This may be wrong for your setup.
+        // If your robot moves backwards when commanded to go forwards,
+        // reverse the left side instead.
+        // See the note about this earlier on this page.
+        leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightFront.setDirection(DcMotorSimple.Direction.FORWARD);
+        rightRear.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        // Turn on bulk reads to help optimize loop times
+        // https://github.com/NoahBres/road-runner-quickstart/blob/b4b850fa1b7492ccc668c4955c682fa19cf101c9/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/drive/advanced/TeleOpJustLocalizer.java#L81C13-L84C14
+        for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        }
+    }
+
+    public void configureMotors() {
+        configureMotors(hardwareMap);
+    }
+
     // outtake basket
 
-    private static final double SERVO_HORIZONTAL_POSITION = 0.54d;
+    public static double OUTTAKE_SERVO_HORIZONTAL_POSITION = 0.54d;
 
-    private static final double SERVO_VERTICAL_POSITION = 0.83d;
+    public static double OUTTAKE_SERVO_VERTICAL_POSITION = 0.83d;
 
     public void initOuttakeBasket() {
         bringOuttakeHorizontal();
     }
 
     public void bringOuttakeHorizontal() {
-        setOuttakePosition(SERVO_HORIZONTAL_POSITION);
+        setOuttakePosition(OUTTAKE_SERVO_HORIZONTAL_POSITION);
     }
 
     public void bringOuttakeVertical() {
-        setOuttakePosition(SERVO_VERTICAL_POSITION);
+        setOuttakePosition(OUTTAKE_SERVO_VERTICAL_POSITION);
     }
 
     public double getOutakePosition() {
@@ -62,6 +89,24 @@ public class LancersRobot {
 
         leftOuttake.setPosition(targetLeftPos);
         rightOuttake.setPosition(targetRightPos);
+    }
+
+    // drone launcher
+
+    public static double DRONE_LAUNCHER_SERVO_START_POSITION = 0.0d;
+    public static double DRONE_LAUNCHER_SERVO_END_POSITION = 0.5d;
+
+    public void launchDrone() {
+        setDroneLauncherPosition(DRONE_LAUNCHER_SERVO_END_POSITION);
+    }
+
+    public void resetDroneLauncher() {
+        setDroneLauncherPosition(DRONE_LAUNCHER_SERVO_START_POSITION);
+    }
+
+    public void setDroneLauncherPosition(final double position) {
+        final @NotNull Servo droneLauncher = hardwareMap.servo.get(LancersBotConfig.DRONE_LAUNCHER_SERVO);
+        droneLauncher.setPosition(position);
     }
 
     // outtake wheels

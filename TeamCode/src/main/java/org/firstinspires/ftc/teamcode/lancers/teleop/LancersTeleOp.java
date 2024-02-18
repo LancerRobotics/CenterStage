@@ -126,6 +126,15 @@ public final class LancersTeleOp extends LancersBaseOpMode {
         }
     }
 
+    public void droneLauncherMovement(final @NotNull Gamepad gamepad) {
+        Objects.requireNonNull(robot);
+
+        if (gamepad.y) {
+            robot.launchDrone();
+        }
+        // We don't need to have a button to reset the drone launcher:
+    }
+
     @Override
     public void runOpMode() throws InterruptedException {
         // https://gm0.org/ja/latest/docs/software/tutorials/gamepad
@@ -147,6 +156,7 @@ public final class LancersTeleOp extends LancersBaseOpMode {
                 // Gamepad 1 / Movement
                 mecanumMovement(gamepad1);
                 intakeMovement(gamepad1);
+                droneLauncherMovement(gamepad1);
 
                 // Gamepad 2 / Scoring
                 sliderMovement(gamepad2);
